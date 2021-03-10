@@ -1,0 +1,22 @@
+#+title: DOMUS ML-Simulator
+#+author: James Brusey
+* Introduction
+This is an interface to machine learnt simulators written in Python developed as part of the H2020 EU DOMUS project http://domus-project.eu 
+
+* Installation
+The simplest way to install is first install miniconda https://docs.conda.io/en/latest/miniconda.html or Anaconda https://www.anaconda.com/products/individual and then use the command line as follows:
+#+BEGIN_SRC sh
+conda env create -f ml.yml
+#+END_SRC
+This will create a conda environment called ~ml~ that can be activated using:
+#+BEGIN_SRC sh
+conda activate ml
+#+END_SRC
+
+* Testing your installation
+To ensure that you have everything installed ok, use:
+#+BEGIN_SRC sh
+cd src
+python -m pytest
+#+END_SRC
+If this produces errors, it may indicate that you are missing some packages or haven't activated the conda environment.

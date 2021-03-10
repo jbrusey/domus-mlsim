@@ -1,0 +1,26 @@
+name: ml
+channels:
+  - conda-forge
+  - anaconda-fusion
+  - defaults
+dependencies:
+  - docutils
+  - numpy
+  - pulp
+  - seaborn
+  - statsmodels
+  - conda
+  - pip
+  - jupyterlab
+  - octave_kernel
+  - keras
+  - pandas
+  - tensorflow
+  - xlrd
+  - boost
+  - jupyter
+  - scikit-learn
+  - pytest
+  - flake8
+  - pep8
+prefix: /Users/james/miniconda3/envs/ml
