@@ -4,23 +4,15 @@ channels:
   - anaconda-fusion
   - defaults
 dependencies:
-  - docutils
-  - numpy
-  - pulp
-  - seaborn
-  - statsmodels
-  - conda
-  - pip
-  - jupyterlab
-  - octave_kernel
-  - keras
-  - pandas
-  - tensorflow
-  - xlrd
   - boost
-  - jupyter
-  - scikit-learn
-  - pytest
+  - conda
   - flake8
+  - matplotlib
+  - numpy
+  - pandas
   - pep8
-prefix: /Users/james/miniconda3/envs/ml
+  - pip
+  - pytest
+  - scikit-learn
+  - seaborn
+  - xlrd
