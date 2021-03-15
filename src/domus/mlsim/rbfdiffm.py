@@ -45,26 +45,26 @@ def trainRBFDiffNetMISO(Xtrain, ytrain, ylagged, Phi, diPhi, order, d, num_iter)
     pde_coeffs = (np.ones([order, d]) * (0.1**np.arange(1, order + 1) / factorial(np.arange(1, order + 1))).reshape(-1, 1)).reshape(-1, 1)
     ytrain = ytrain.reshape(-1, 1)
 
-    ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))@rbf_coeffs) + ylagged @ w_lagged
+    ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs) + ylagged @ w_lagged
     min_err = MSE(ytrain, ypred)
     opt_weights = [rbf_coeffs, pde_coeffs, w_lagged]
 
     for i in range(num_iter):
         # print(i)
         # Step 1: Fix w_lagged, rbf_coeffs; solve for pde_coeffs
-        pde_coeffs = np.linalg.pinv((np.sum(rbf_coeffs.reshape(1, 1, c) * diPhi, axis=2)))@(ytrain - ylagged@w_lagged)
+        pde_coeffs = np.linalg.pinv((np.sum(rbf_coeffs.reshape(1, 1, c) * diPhi, axis=2))) @ (ytrain - ylagged @ w_lagged)
 
         # Step 2: Fix rbf_coeffs, pde_coeffs; solve for w_lagged
-        w_lagged = np.linalg.pinv(ylagged)@(ytrain - ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))@rbf_coeffs))
+        w_lagged = np.linalg.pinv(ylagged) @ (ytrain - ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs))
 
         # Step 3: Fix w_lagged, pde_coeffs; solve for rbf_coeffs
-        rbf_coeffs = np.linalg.pinv((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)))@(ytrain - ylagged@w_lagged)
+        rbf_coeffs = np.linalg.pinv((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))) @ (ytrain - ylagged @ w_lagged)
 
         # TODO Check - var is assigned but never used
         # bias = np.mean(ytrain - Phi @ rbf_coeffs)
 
         # Compute predictions and errors
-        ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))@rbf_coeffs) + ylagged@w_lagged
+        ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs) + ylagged @ w_lagged
         err = MSE(ytrain, ypred)
 
         if err < min_err:
