@@ -17,6 +17,11 @@ conda activate ml
 To ensure that you have everything installed ok, use:
 #+BEGIN_SRC sh
 cd src
-python -m pytest
+python -m pytest ../tests
 #+END_SRC
 If this produces errors, it may indicate that you are missing some packages or haven't activated the conda environment.
+
+** Notes
+
+1. =pytest= command does not include the current directory in PYTHONPATH. Make sure you use the =python -m pytest= form.
+

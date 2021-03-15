@@ -17,7 +17,7 @@ from sklearn.metrics import mean_squared_error as MSE
 from sklearn.linear_model import LinearRegression as LR
 
 from sklearn.base import RegressorMixin, BaseEstimator
-from rbfdiff import rbf, variableBetas, rbfderivatives
+from .rbfdiff import rbf, variableBetas, rbfderivatives
 
 sys.setrecursionlimit(10**6)
 

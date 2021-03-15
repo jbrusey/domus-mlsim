@@ -1,10 +1,14 @@
-from mlsim import MLSim
+from domus.mlsim.mlsim import MLSim
 from ux_transform import unroll_by_group
-from sim_graph import lr_model, learn_model
 import numpy as np
 import pandas as pd
 from pytest import approx
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import LinearRegression
+
+
+def lr_model():
+    return LinearRegression()
 
 
 def test_mlsim():
@@ -47,10 +51,10 @@ def test_mlsim():
 
     xx, yy = X[groups == 0], y[groups == 0]
 
-    xt, yt = X[groups == 1], y[groups == 1]
+    # xt, yt = X[groups == 1], y[groups == 1]
 
     model = lr_model()
-    _ = learn_model(model, xx, yy, xt, yt)
+    _ = model.fit(xx, yy)
 
     initial_state = df.loc[0:xlag - 1, xc].to_numpy()
 

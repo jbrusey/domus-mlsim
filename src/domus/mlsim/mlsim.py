@@ -14,7 +14,7 @@ Simulator that loads a ML model and single steps simulation.
 
 
 import numpy as np
-from partial_scaler import PartialScaler
+from .partial_scaler import PartialScaler
 
 
 class MLSim:

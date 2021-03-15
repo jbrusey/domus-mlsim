@@ -1,5 +1,5 @@
 
-from partial_scaler import PartialScaler
+from domus.mlsim.partial_scaler import PartialScaler
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 from numpy.testing import assert_array_almost_equal
@@ -17,7 +17,7 @@ def test_partial_scaler():
     s.fit(X)
 
     orig = X[2:3, :]
-    
+
     t = s.transform(orig)
 
     assert_array_almost_equal(s.inverse_transform(t), orig)
