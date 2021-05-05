@@ -22,7 +22,9 @@ from .rbfdiff import rbf, variableBetas, rbfderivatives
 sys.setrecursionlimit(10**6)
 
 
-def trainRBFDiffNetMISO(Xtrain, ytrain, ylagged, Phi, diPhi, order, d, num_iter):
+def trainRBFDiffNetMISO(Xtrain, ytrain, ylagged, Phi, diPhi, order, d, num_iter,
+                        verbose=False,
+                        early_stopping=True):
     """
     This function trains the differential RBF network (RBF-DiffNet)
 
@@ -33,7 +35,6 @@ def trainRBFDiffNetMISO(Xtrain, ytrain, ylagged, Phi, diPhi, order, d, num_iter)
     order: order of the partial differential equation
     outputs: network weights together with the RBF centres and widths
     """
-
     c = Phi.shape[1]
     nlags = ylagged.shape[1]
     rbfMdl = LR(fit_intercept=True).fit(Phi, ytrain)
@@ -52,13 +53,22 @@ def trainRBFDiffNetMISO(Xtrain, ytrain, ylagged, Phi, diPhi, order, d, num_iter)
     for i in range(num_iter):
         # print(i)
         # Step 1: Fix w_lagged, rbf_coeffs; solve for pde_coeffs
-        pde_coeffs = np.linalg.pinv((np.sum(rbf_coeffs.reshape(1, 1, c) * diPhi, axis=2))) @ (ytrain - ylagged @ w_lagged)
+        try:
+            pde_coeffs = np.linalg.pinv((np.sum(rbf_coeffs.reshape(1, 1, c) * diPhi, axis=2))) @ (ytrain - ylagged @ w_lagged)
+        except np.linalg.LinAlgError as exc:
+            print(f'pde inverse caused exception: {exc}')
 
         # Step 2: Fix rbf_coeffs, pde_coeffs; solve for w_lagged
-        w_lagged = np.linalg.pinv(ylagged) @ (ytrain - ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs))
+        try:
+            w_lagged = np.linalg.pinv(ylagged) @ (ytrain - ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs))
+        except np.linalg.LinAlgError as exc:
+            print(f'w inverse caused exception: {exc}')
 
         # Step 3: Fix w_lagged, pde_coeffs; solve for rbf_coeffs
-        rbf_coeffs = np.linalg.pinv((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))) @ (ytrain - ylagged @ w_lagged)
+        try:
+            rbf_coeffs = np.linalg.pinv((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))) @ (ytrain - ylagged @ w_lagged)
+        except np.linalg.LinAlgError as exc:
+            print(f'rbf inverse caused exception: {exc}')
 
         # TODO Check - var is assigned but never used
         # bias = np.mean(ytrain - Phi @ rbf_coeffs)
@@ -66,10 +76,14 @@ def trainRBFDiffNetMISO(Xtrain, ytrain, ylagged, Phi, diPhi, order, d, num_iter)
         # Compute predictions and errors
         ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs) + ylagged @ w_lagged
         err = MSE(ytrain, ypred)
+        if verbose:
+            print(f"{i} iteration: mse={err}")
 
         if err < min_err:
             min_err = err
             opt_weights = [rbf_coeffs, pde_coeffs, w_lagged]
+        elif early_stopping:
+            return opt_weights
 
     return opt_weights
 
@@ -91,7 +105,8 @@ def trainRBFDiffNetMIMO(X_train, Y_train, c, nlags, order, p, num_iter, verbose=
             y_lagged = y_lagged.reshape(-1, 1)
         y_train = Y_train[:, i].reshape(-1, 1)
 
-        opt_weights = trainRBFDiffNetMISO(X_train, y_train, y_lagged, Phi, diPhi, order, d, num_iter)
+        opt_weights = trainRBFDiffNetMISO(X_train, y_train, y_lagged, Phi, diPhi, order, d, num_iter,
+                                          verbose=verbose)
         WEIGHTS[i] = opt_weights
 
     return WEIGHTS, centres, betas
@@ -139,12 +154,13 @@ class RBFDiffMIMORegressor(RegressorMixin, BaseEstimator):
     RBFDiffMIMORegressor
 
     """
-    def __init__(self, c, nlags, order, p, num_iter):
+    def __init__(self, c, nlags, order, p, num_iter, verbose=False):
         self.c = c
         self.nlags = nlags
         self.order = order
         self.p = p
         self.num_iter = num_iter
+        self.verbose = verbose
 
     def fit(self, x, y):
         self.weights, self.centres, self.betas = trainRBFDiffNetMIMO(x, y,
@@ -152,7 +168,8 @@ class RBFDiffMIMORegressor(RegressorMixin, BaseEstimator):
                                                                      self.nlags,
                                                                      self.order,
                                                                      self.p,
-                                                                     self.num_iter)
+                                                                     self.num_iter,
+                                                                     verbose=self.verbose)
 
     def predict(self, x):
         return testRBFDiffNetMIMO(x,

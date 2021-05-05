@@ -16,14 +16,14 @@ from scipy.spatial import KDTree
 import sys
 
 from sklearn.metrics import mean_squared_error as MSE
-from sklearn.linear_model import LassoCV, LinearRegression as LR
+from sklearn.linear_model import LinearRegression as LR
 
 from sklearn.base import RegressorMixin, BaseEstimator
 
 sys.setrecursionlimit(10**6)
 
 
-def variableBetas(X, c, p, random_state=42):
+def variableBetas(X, c, p, random_state=None):
     """
     The function returns c RBF centres and widths using K-Means clustering, with each RBF having its own unique width.
 
@@ -59,7 +59,7 @@ def variableBetas(X, c, p, random_state=42):
     clusterObj = KMeans(n_clusters=c, random_state=random_state).fit(X)
     labels = clusterObj.labels_
     d = X.shape[1]
-    betas = np.zeros((c,))
+    betas = np.zeros((c))
     centres = np.zeros((c, d))
     for label in range(c):
         Xk = X[labels == label, :]
@@ -71,61 +71,46 @@ def variableBetas(X, c, p, random_state=42):
         betas[label] = 1 / (2 * sigma**2)
         centres[label] = Muk
     # TODO consider asserting : not np.isinf(betas).any()
+    assert not np.isinf(betas).any()
     betas[np.isinf(betas)] = np.sum(betas[~np.isinf(betas)])
     return centres, betas
 
 
 def rbf(X, centres, betas):
     """
-    This function evaluates the radial basis function (RBF) Phi for each data sample in X.
 
-    X: input matrix of size N-by-d, where N is the number of training examples, and d is the number of features
-    centres: input array of RBF locations of size: c-by-dy, where c is the number of centres
-    betas: input array of RBF widths of size: 1-by-d
-    Phi: an output array of size N-by-c
+    Radial basis function evaluated for N samples in X of d dimensions for
+    c centres with widths given by betas.
+
+    Code revised by jpb to use broadcasting rather than list compressions.
+
+
+    Parameters
+    ----------
+
+    X : 2-d array N x d
+
+      - data samples
+
+    centres : 2-d array c x d
+
+      - c centres each of dimension d
+
+    betas : array of length c
+
+      - c scalar widths (one for each centre)
+
+    Returns
+    -------
+    array N x c according to
+
+       $Phi = \exp(- \beta * | X - c |^2) $
+
     """
     N, d = X.shape
-    Phi = [np.exp(-betas * np.linalg.norm(X[n] - centres, axis=1)**2) for n in range(N)]
-    return np.array(Phi)
-
-
-def trainRBFN(Xtrain, ytrain, c, p, normalise):
-    """
-    This function trains the weights for the normalised and unnormalised RBF networks
-
-    Xtrain: training input of size n_train-by-d
-    ytrain: training output of size n_train-by-1
-    c: number of radial basis function (RBF) centres
-    normalise: a Boolean input indicating normalised RBF network (True) or unnormalised RBF network (False)
-    outputs: linear model at output layer, together with the RBF centres and widths
-    """
-    n, d = Xtrain.shape
-    centres, betas = variableBetas(Xtrain, c, p)
-    Phi = rbf(Xtrain, centres, betas)
-    if normalise:
-        Phi = Phi / np.sum(Phi, axis=1).reshape(-1, 1)
-    linMdl = LassoCV().fit(Phi, ytrain)
-    return linMdl, centres, betas
-
-
-def testRBFN(Xtest, centres, betas, linMdl, normalise):
-    """
-    This function tests the normalised/unnormalised RBF network on new samples
-
-    Xtest: test input of size n_test-by-d
-    centres: input array of RBF locations of size: c-by-d, where c is the number of centres
-    betas: input array of RBF widths of size: 1-by-d
-    linMdl: linear model at output layer of RBF network
-    normalise: a Boolean input indicating normalised RBF network (True) or unnormalised RBF network (False)
-    outputs: one step predictions of size: n_test-by-1 - for the sequence
-    """
-
-    n, d = Xtest.shape
-    Phi = rbf(Xtest, centres, betas)
-    if normalise:
-        Phi = Phi / np.sum(Phi, axis=1).reshape(-1, 1)
-    ypred = linMdl.predict(Phi)
-    return ypred
+    assert len(betas) == centres.shape[0]
+    Phi = np.exp(- betas * np.linalg.norm(X.reshape(N, 1, d) - centres, axis=2) ** 2)
+    return Phi
 
 
 def rbfderivatives(X, centres, betas, order, Phi):
@@ -135,17 +120,17 @@ def rbfderivatives(X, centres, betas, order, Phi):
 
     X: input matrix of size N-by-d, where N is the number of training examples, and d is the number of features
     centres: input array of RBF locations of size: c-by-dy, where c is the number of centres
-    betas: input array of RBF widths of size: 1-by-d
+    betas: input array of RBF widths of size: 1-by-c
     Phi: input array of radial basis functions of size N-by-c
     order: input scalar representing the order of the differential equation
     diPhi: output array of RBF derivatives of size: N-by-order-by-d-by-c
     """
     N, d = X.shape
     c = centres.shape[0]
-    diPhi = []
+    diPhi = np.zeros((N, order, d, c))
     for n in range(N):
-        diPhi_n = []
-        diPhi_n.append(np.tile(Phi[n], (d, 1)))
+        diPhi_n = np.zeros((order + 1, d, c))
+        diPhi_n[0] = np.tile(Phi[n], (d, 1))
         for i in range(1, order + 1):
             leibniz_sum = 0
             for k in range(i):
@@ -157,9 +142,9 @@ def rbfderivatives(X, centres, betas, order, Phi):
                 elif i - k - 1 >= 2:
                     u = np.zeros([d, c])
                 leibniz_sum = leibniz_sum + (bin_coeff * u * diPhi_n[k])
-            diPhi_n.append(leibniz_sum)
-        diPhi.append(diPhi_n[1:])    # Excluding the zeroth derivative
-    return np.array(diPhi)
+            diPhi_n[i] = leibniz_sum
+        diPhi[n] = diPhi_n[1:]    # Excluding the zeroth derivative
+    return diPhi
 
 
 def obj_func(x, extraArgs):
@@ -249,7 +234,7 @@ def testRBFDiffNet(Xtest, num_xcols, weights, centres, betas):
     Xtest: test input of size n_test-by-d
     weights: differential RBF network weights
     centres: input array of RBF locations of size: c-by-d, where c is the number of centres
-    betas: input array of RBF widths of size: 1-by-d
+    betas: input array of RBF widths of size: 1-by-c
     order: order of the partial differential equation
     outputs: one step predictions of size: n_test-by-1 - for the sequence
     """
