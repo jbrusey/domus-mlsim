@@ -21,9 +21,33 @@ class PartialScaler(TransformerMixin, BaseEstimator):
     def __init__(self, scaler, lower, upper, n_features):
         """.
 
-        Converts an ordinary scaler object into one that will scale a
-        partially filled vector. For example, if the original scaler
-        is for a vector of length N, then rescale
+        Wrapper for an ordinary scaler object to make it one that will
+        scale a partially filled vector. For example, if the original
+        scaler is over N features and you want a new scaler that just
+        scales over the first k features and another scaler for the
+        rest, you would use
+
+          px = PartialScaler(scaler, 0, k, N)
+          py = PartialScaler(scaler, k, N, N)
+
+        Parameters
+        ----------
+
+        scaler : sklearn scaler object
+
+          original scaler that scales over all n_features
+
+        lower : integer
+
+          index to lower bound of original vector to create new scaler form
+
+        upper : integer
+
+          upper bound (following usual python slice semantics where upper bound index is not included)
+
+        n_features : integer
+
+          number of features in the original scaler
 
         """
         self.scaler = scaler

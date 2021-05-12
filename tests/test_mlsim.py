@@ -66,10 +66,12 @@ def test_mlsim():
                 xlen=1,
                 ulen=1)
 
-    s1 = sim.step([0])
+    t, s1 = sim.step([0])
 
     assert approx(df.loc[xlag, xc].to_numpy()) == s1[0]
+    assert t == 1
 
-    s2 = sim.step([0])
+    t, s2 = sim.step([0])
 
     assert approx(df.loc[xlag + 1, xc].to_numpy()) == s2[0]
+    assert t == 2

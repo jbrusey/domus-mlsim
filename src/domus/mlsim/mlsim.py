@@ -30,7 +30,9 @@ class MLSim:
                  xlag,
                  ulag,
                  xlen,
-                 ulen
+                 ulen,
+                 interval=1,
+                 initial_clock=0
                  ):
         """construct a simulator object
 
@@ -69,6 +71,16 @@ class MLSim:
 
           length of the control vector
 
+        interval : integer
+
+          time interval that the simulator was developed using, in
+          seconds
+
+        initial_clock : integer
+
+          initial clock value so that first step will have time
+          initial_clock + interval
+
         """
         self.model = model
         if initial_state.shape[0] == 1:
@@ -81,6 +93,8 @@ class MLSim:
         self.ulag = ulag
         self.xlen = xlen
         self.ulen = ulen
+        self.interval = interval
+        self.clock = initial_clock
         self.first = True
         if scaler is not None:
             self.x_scaler = PartialScaler(scaler, 0, xlen, xlen + ulen)
@@ -105,7 +119,7 @@ class MLSim:
         Returns
         -------
 
-        state vector at end of time step
+        (time, state vector at end of time step)
 
         """
         ut = np.array(ut).reshape(1, -1)
@@ -128,4 +142,5 @@ class MLSim:
         self.xt = np.append(self.xt[1:],
                             new_xt.reshape(1, -1),
                             axis=0)
-        return self.x_scaler.inverse_transform(new_xt)
+        self.clock += self.interval
+        return (self.clock, self.x_scaler.inverse_transform(new_xt))
