@@ -42,16 +42,26 @@ def test_vent_temperature():
 
     control.setpoint(22 + KELVIN)
 
-    control.set_state(cabin_temperature=22 - 18 + KELVIN, dt=10)   # -18 (cold)
-    assert control.heater_amps == 12.0  # maximum
+    control.set_state(cabin_temperature=22 - 18 + KELVIN,
+                      vent_temperature=22 - 18 + KELVIN,
+                      dt=1)   # -18 (cold)
+    assert control.heater_power == 6000.0  # maximum
     assert control.compressor_power == 0.0   # cooling off
 
-    control.set_state(cabin_temperature=22 + KELVIN, dt=10)   # neutral
-    assert control.heater_amps == 0   # approx(0.02 * 10 * 18)  # integral based on previous error
+    control.set_state(cabin_temperature=22 - 17 + KELVIN,
+                      vent_temperature=KELVIN + 49,
+                      dt=1)   # heating up
+    assert control.heater_power == 6000.0   # approx(0.02 * 10 * 18)  # integral based on previous error
     assert control.compressor_power == 0.0   # cooling off
 
-    control.set_state(cabin_temperature=22 + 5 + KELVIN, dt=10)   # hot
-    assert control.heater_amps == 0  # no heating
+    control.set_state(cabin_temperature=22 - 17 + KELVIN,
+                      vent_temperature=KELVIN + 59,
+                      dt=1)   # heating up
+    assert 0 < control.heater_power < 600.0
+    assert control.compressor_power == 0.0   # cooling off
+
+    control.set_state(cabin_temperature=22 + 5 + KELVIN, dt=1)   # hot
+    assert control.heater_power == 0  # no heating
     assert control.compressor_power == 3000.0   # cooling on max
 
 
