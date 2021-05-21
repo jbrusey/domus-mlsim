@@ -32,7 +32,8 @@ class MLSim:
                  xlen,
                  ulen,
                  interval=1,
-                 initial_clock=0
+                 initial_clock=0,
+                 prior_actions=None
                  ):
         """construct a simulator object
 
@@ -81,20 +82,21 @@ class MLSim:
           initial clock value so that first step will have time
           initial_clock + interval
 
+        prior_actions : array
+
+          ulag - 1 actions
+
         """
         self.model = model
-        if initial_state.shape[0] == 1:
-            self.xt = np.repeat(initial_state.reshape(1, -1),
-                                xlag,
-                                axis=0)
-        else:
-            self.xt = initial_state.reshape(xlag, xlen)
+        self.xt = initial_state
+        assert initial_state.shape == (xlag, xlen)
         self.xlag = xlag
         self.ulag = ulag
         self.xlen = xlen
         self.ulen = ulen
         self.interval = interval
         self.clock = initial_clock
+        self.prior_actions = prior_actions
         self.first = True
         if scaler is not None:
             self.x_scaler = PartialScaler(scaler, 0, xlen, xlen + ulen)
@@ -129,13 +131,16 @@ class MLSim:
         if self.first:
             # for first step, assume that the same control inputs were
             # used for all previous steps
-            self.ut = np.repeat(ut,
-                                self.ulag,
-                                axis=0)
+            if self.prior_actions is not None:
+                self.ut = np.vstack([self.u_scaler.transform(self.prior_actions),
+                                     ut])
+            else:
+                self.ut = np.vstack([ut] * (self.ulag))
         else:
             self.ut = np.append(self.ut[1:],
                                 ut,
                                 axis=0)
+        assert self.ut.shape == (self.ulag, self.ulen)
 
         x = np.hstack((self.xt.reshape(1, -1), self.ut.reshape(1, -1)))
         new_xt = self.model.predict(x)
