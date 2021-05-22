@@ -131,6 +131,11 @@ def test_two_lags():
     print(f'sim.step({u}) -> {t}, {xt}')
     assert approx(xt[0][0]) == df.y.iloc[lag]
 
+    u = df.x.to_numpy()[lag + 1:lag + 2]
+    t, xt = sim.step(u)
+    print(f'sim.step({u}) -> {t}, {xt}')
+    assert approx(xt[0][0]) == df.y.iloc[lag + 1]
+
 
 def test_one_lag():
     N = 10
@@ -176,3 +181,8 @@ def test_one_lag():
 
     t, xt = sim.step(df.x.iloc[lag])
     assert approx(xt[0][0]) == df.y.iloc[lag]
+
+    u = df.x.to_numpy()[lag + 1:lag + 2]
+    t, xt = sim.step(u)
+    print(f'sim.step({u}) -> {t}, {xt}')
+    assert approx(xt[0][0]) == df.y.iloc[lag + 1]

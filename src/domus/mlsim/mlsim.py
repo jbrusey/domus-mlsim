@@ -136,6 +136,7 @@ class MLSim:
                                      ut])
             else:
                 self.ut = np.vstack([ut] * (self.ulag))
+            self.first = False
         else:
             self.ut = np.append(self.ut[1:],
                                 ut,
