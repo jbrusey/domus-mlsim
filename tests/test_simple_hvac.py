@@ -14,7 +14,6 @@ May 6, 2021
 
 from domus.control.simple_hvac import SimpleHvac, KELVIN
 from domus.mlsim.util import kw_to_array
-import pandas as pd
 # from pytest import approx
 
 
@@ -30,8 +29,7 @@ def test_blower_level():
                                  cabin_humidity=0.5,
                                  vent_temperature=22 - 18 + KELVIN,
                                  ))
-    xs = pd.Series(x, SimpleHvac.XT_COLUMNS)
-    assert xs.blower_level == 18
+    assert x[SimpleHvac.Xt.blower_level] == 18
 
     # cabin -5
     x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
@@ -41,8 +39,7 @@ def test_blower_level():
                                  cabin_humidity=0.5,
                                  vent_temperature=22 - 18 + KELVIN,
                                  ))
-    xs = pd.Series(x, SimpleHvac.XT_COLUMNS)
-    assert xs.blower_level == 10
+    assert x[SimpleHvac.Xt.blower_level] == 10
 
     # this tests the linear interpolation
     # cabin -3.5

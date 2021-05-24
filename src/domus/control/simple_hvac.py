@@ -62,6 +62,17 @@ class SimpleHvac:
     UT_COLUMNS = [x.name for x in Ut]
     XT_COLUMNS = [x.name for x in Xt]
 
+    UT_MIN = np.array([0,
+                       -20 + KELVIN,
+                       15 + KELVIN,
+                       0 + KELVIN,
+                       -20 + KELVIN])
+    UT_MAX = np.array([1,
+                       80 + KELVIN,
+                       30 + KELVIN,
+                       70 + KELVIN,
+                       60 + KELVIN])
+
     def __init__(self, dt=1, setpoint=DEFAULT_SETPOINT):
         """ Create a new SimpleHvac.
 
@@ -125,6 +136,8 @@ class SimpleHvac:
         vector (see Xt)
 
         """
+        # clip
+        action = np.clip(action, self.UT_MIN, self.UT_MAX)
         self.update_blower_level(action)
         self.update_pid(action)
         self.update_window_heating(action)

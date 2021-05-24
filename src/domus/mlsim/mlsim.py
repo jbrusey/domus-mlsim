@@ -41,7 +41,9 @@ class MLSim:
                  ulen,
                  interval=1,
                  initial_clock=0,
-                 prior_actions=None
+                 prior_actions=None,
+                 ut_min=None,
+                 ut_max=None
                  ):
         """construct a simulator object
 
@@ -94,6 +96,14 @@ class MLSim:
 
           ulag - 1 actions
 
+        ut_min : array
+
+          action array minimum values (used for clipping)
+
+        ut_max : array
+
+          action array maximum values (used for clipping)
+
         """
         self.model = model
         self.xt = initial_state
@@ -112,6 +122,9 @@ class MLSim:
             self.xt = self.x_scaler.transform(self.xt)
         else:
             self.x_scaler = self.u_scaler = None
+        self.ut_min = ut_min
+        self.ut_max = ut_max
+        assert (ut_min is None) == (ut_max is None)
 
     def step(self, ut):
         """simulate a single time step
@@ -133,6 +146,8 @@ class MLSim:
 
         """
         ut = np.array(ut).reshape(1, -1)
+        if self.ut_min is not None and self.ut_max is not None:
+            ut = np.clip(ut, self.ut_min, self.ut_max)
         ut = self.u_scaler.transform(ut)
         assert self.xt.shape[0] == self.xlag
         assert self.xt.shape[1] == self.xlen
