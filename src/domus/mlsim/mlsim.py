@@ -1,14 +1,18 @@
 """
 
-run_model
+mlsim
 
 
 Author
 ------
-J. Brusey, 4-March-2021
+J. Brusey
+
+Date
+----
+4-March-2021
 
 
-Simulator that loads a ML model and single steps simulation.
+MLSim class that packages up a machine learnt model and scaler.
 
 """
 
@@ -18,9 +22,13 @@ from .partial_scaler import PartialScaler
 
 
 class MLSim:
-    """
-    Discrete time simulator derived from machine-learnt model.
+    """Discrete time simulator derived from machine-learnt model.
 
+    The idea of this class is to wrap up the ML simulator and deal
+    with scaling, lagged state and actions, and differing intervals to
+    make the simulator easier to call. The initial state and prior
+    actions are provided to the constructor and then the simulator can
+    be run by successive calls to ~step~.
 
     """
     def __init__(self,

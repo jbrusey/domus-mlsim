@@ -182,7 +182,8 @@ def test_one_lag():
     t, xt = sim.step(df.x.iloc[lag])
     assert approx(xt[0][0]) == df.y.iloc[lag]
 
-    u = df.x.to_numpy()[lag + 1:lag + 2]
-    t, xt = sim.step(u)
-    print(f'sim.step({u}) -> {t}, {xt}')
-    assert approx(xt[0][0]) == df.y.iloc[lag + 1]
+    for i in range(4):
+        u = df.x.to_numpy()[lag + i + 1:lag + i + 2]
+        t, xt = sim.step(u)
+        print(f'sim.step({u}) -> {t}, {xt}')
+        assert approx(xt[0][0]) == df.y.iloc[lag + i + 1]
