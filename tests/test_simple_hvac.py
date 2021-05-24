@@ -12,75 +12,141 @@ May 6, 2021
 
 """
 
-from domus.control.simple_hvac import HvacController, KELVIN
+from domus.control.simple_hvac import SimpleHvac, KELVIN
+from domus.mlsim.util import kw_to_array
+import pandas as pd
 # from pytest import approx
 
 
 def test_blower_level():
-    control = HvacController()
+    control = SimpleHvac(dt=10)
 
     # increasing
-    control.setpoint(22 + KELVIN)
-    control.set_state(cabin_temperature=22 - 18 + KELVIN,   # -18
-                      dt=10
-                      )
-    assert control.blower_level() == 18  # for inc or dec
-    control.set_state(cabin_temperature=22 - 5 + KELVIN, dt=10)    # -5
-    assert control.blower_level() == 10
+    # cabin -18
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 - 18 + KELVIN,
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=22 - 18 + KELVIN,
+                                 ))
+    xs = pd.Series(x, SimpleHvac.XT_COLUMNS)
+    assert xs.blower_level == 18
+
+    # cabin -5
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 - 5 + KELVIN,
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=22 - 18 + KELVIN,
+                                 ))
+    xs = pd.Series(x, SimpleHvac.XT_COLUMNS)
+    assert xs.blower_level == 10
 
     # this tests the linear interpolation
-    control.set_state(cabin_temperature=22 + (-5 + -2) / 2 + KELVIN, dt=10)
-    assert control.blower_level() == (10 + 5) / 2
+    # cabin -3.5
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 + (-5 - 2) / 2 + KELVIN,
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=22 - 18 + KELVIN,
+                                 ))
+    assert x[SimpleHvac.Xt.blower_level] == (10 + 5) / 2
+
+    # TODO - this may be wrong - perhaps decreasing only comes into
+    # effect when temperature reaches target at least?
 
     # decreasing
-    control.set_state(cabin_temperature=22 - 5 + KELVIN, dt=10)
-    assert control.blower_level() == 5
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 - 5 + KELVIN,
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=22 - 18 + KELVIN,
+                                 ))
+    assert x[SimpleHvac.Xt.blower_level] == 5
 
 
 def test_vent_temperature():
-    control = HvacController()
+    control = SimpleHvac(dt=1)
 
-    control.setpoint(22 + KELVIN)
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 - 18 + KELVIN,
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=22 - 18 + KELVIN,
+                                 ))
+    assert x[SimpleHvac.Xt.heater_power] == 6000.0
+    assert x[SimpleHvac.Xt.compressor_power] == 0.0
 
-    control.set_state(cabin_temperature=22 - 18 + KELVIN,
-                      vent_temperature=22 - 18 + KELVIN,
-                      dt=1)   # -18 (cold)
-    assert control.heater_power == 6000.0  # maximum
-    assert control.compressor_power == 0.0   # cooling off
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 - 17 + KELVIN,
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=49 + KELVIN,  # <<<
+                                 ))
+    assert x[SimpleHvac.Xt.heater_power] == 6000.0
+    assert x[SimpleHvac.Xt.compressor_power] == 0.0
 
-    control.set_state(cabin_temperature=22 - 17 + KELVIN,
-                      vent_temperature=KELVIN + 49,
-                      dt=1)   # heating up
-    assert control.heater_power == 6000.0   # approx(0.02 * 10 * 18)  # integral based on previous error
-    assert control.compressor_power == 0.0   # cooling off
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 - 17 + KELVIN,
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=59 + KELVIN,  # <<<
+                                 ))
+    assert 0 < x[SimpleHvac.Xt.heater_power] < 600.0
+    assert x[SimpleHvac.Xt.compressor_power] == 0.0
 
-    control.set_state(cabin_temperature=22 - 17 + KELVIN,
-                      vent_temperature=KELVIN + 59,
-                      dt=1)   # heating up
-    assert 0 < control.heater_power < 600.0
-    assert control.compressor_power == 0.0   # cooling off
-
-    control.set_state(cabin_temperature=22 + 5 + KELVIN, dt=1)   # hot
-    assert control.heater_power == 0  # no heating
-    assert control.compressor_power == 3000.0   # cooling on max
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 + 5 + KELVIN,  # <<<
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=59 + KELVIN,
+                                 ))
+    assert x[SimpleHvac.Xt.heater_power] == 0.0
+    assert x[SimpleHvac.Xt.compressor_power] == 3000.0
 
 
 def test_demist():
-    control = HvacController()
+    control = SimpleHvac()
 
-    control.set_state(cabin_humidity=0.5, window_temperature=22, dt=10)
-    assert control.window_heating == 0   # no mist so no heating
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 + KELVIN,
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=59 + KELVIN,
+                                 ))
+    assert x[SimpleHvac.Xt.window_heating] == 0.0
 
-    control.set_state(cabin_humidity=0.9, window_temperature=2, dt=10)
-    assert control.window_heating == 1   # at dewpoint temperature
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 + KELVIN,
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=2 + KELVIN,  # <<<
+                                 cabin_humidity=0.9,   # <<<
+                                 vent_temperature=59 + KELVIN,
+                                 ))
+    assert x[SimpleHvac.Xt.window_heating] == 1.0
 
 
 def test_recirc():
-    control = HvacController()
+    control = SimpleHvac(dt=10)
 
     clock = 0
     for i in range(120):
-        control.set_state(cabin_temperature=22 + KELVIN, dt=10)
+        x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                     cabin_temperature=22 + KELVIN,
+                                     setpoint=22 + KELVIN,
+                                     window_temperature=2 + KELVIN,  # <<<
+                                     cabin_humidity=0.9,   # <<<
+                                     vent_temperature=59 + KELVIN,
+                                     ))
+        #        print(f'{clock}: {x[SimpleHvac.Xt.recirc]}')
+        assert x[SimpleHvac.Xt.recirc] == int((clock % 600) >= 30)
         clock += 10
-        print(clock, control.recirc)
-        assert control.recirc == int((clock % 600) < 600 - 30)
