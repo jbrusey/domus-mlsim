@@ -129,13 +129,13 @@ def test_two_lags():
     u = df.x.to_numpy()[lag:lag + 1]
     t, xt = sim.step(u)
     print(f'sim.step({u}) -> {t}, {xt}')
-    assert approx(xt[0][0]) == df.y.iloc[lag]
+    assert approx(xt[0]) == df.y.iloc[lag]
 
     for i in range(4):
         u = df.x.to_numpy()[lag + i + 1:lag + i + 2]
         t, xt = sim.step(u)
         print(f'sim.step({u}) -> {t}, {xt}')
-        assert approx(xt[0][0]) == df.y.iloc[lag + i + 1]
+        assert approx(xt[0]) == df.y.iloc[lag + i + 1]
 
 
 def test_one_lag():
@@ -181,13 +181,14 @@ def test_one_lag():
                 ulen=1)
 
     t, xt = sim.step(df.x.iloc[lag])
-    assert approx(xt[0][0]) == df.y.iloc[lag]
+    assert xt.shape == (1,)
+    assert approx(xt[0]) == df.y.iloc[lag]
 
     for i in range(4):
         u = df.x.to_numpy()[lag + i + 1:lag + i + 2]
         t, xt = sim.step(u)
         print(f'sim.step({u}) -> {t}, {xt}')
-        assert approx(xt[0][0]) == df.y.iloc[lag + i + 1]
+        assert approx(xt[0]) == df.y.iloc[lag + i + 1]
 
 
 def test_clip():
@@ -232,15 +233,14 @@ def test_clip():
     # try a value that is larger than ut max
     t, xt = sim.step(33)
     # it should squash to 1
-    assert approx(xt[0][0]) == -2 * 100 + 3 * 1
+    assert approx(xt[0]) == -2 * 100 + 3 * 1
 
-    old_x = xt[0][0]
+    old_x = xt[0]
     # try a value smaller than ut min
     t, xt = sim.step(-9)
-    assert approx(xt[0][0]) == -2 * old_x + 3 * 0
+    assert approx(xt[0]) == -2 * old_x + 3 * 0
 
-    old_x = xt[0][0]
+    old_x = xt[0]
     # try a value in between
     t, xt = sim.step(0.7)
-    assert approx(xt[0][0]) == -2 * old_x + 3 * 0.7
-
+    assert approx(xt[0]) == -2 * old_x + 3 * 0.7

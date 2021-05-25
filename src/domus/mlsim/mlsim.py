@@ -116,12 +116,9 @@ class MLSim:
         self.clock = initial_clock
         self.prior_actions = prior_actions
         self.first = True
-        if scaler is not None:
-            self.x_scaler = PartialScaler(scaler, 0, xlen, xlen + ulen)
-            self.u_scaler = PartialScaler(scaler, xlen, xlen + ulen, xlen + ulen)
-            self.xt = self.x_scaler.transform(self.xt)
-        else:
-            self.x_scaler = self.u_scaler = None
+        self.x_scaler = PartialScaler(scaler, 0, xlen, xlen + ulen)
+        self.u_scaler = PartialScaler(scaler, xlen, xlen + ulen, xlen + ulen)
+        self.xt = self.x_scaler.transform(self.xt)
         self.ut_min = ut_min
         self.ut_max = ut_max
         assert (ut_min is None) == (ut_max is None)
@@ -172,4 +169,4 @@ class MLSim:
                             new_xt.reshape(1, -1),
                             axis=0)
         self.clock += self.interval
-        return (self.clock, self.x_scaler.inverse_transform(new_xt))
+        return (self.clock, self.x_scaler.inverse_transform(new_xt)[0])
