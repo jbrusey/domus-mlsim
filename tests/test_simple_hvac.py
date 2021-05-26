@@ -29,7 +29,7 @@ def test_blower_level():
                                  cabin_humidity=0.5,
                                  vent_temperature=22 - 18 + KELVIN,
                                  ))
-    assert x[SimpleHvac.Xt.blower_level] == 18
+    assert x[SimpleHvac.Xt.blower_level] == 18 * 17 + 94
 
     # cabin -5
     x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
@@ -39,7 +39,7 @@ def test_blower_level():
                                  cabin_humidity=0.5,
                                  vent_temperature=22 - 18 + KELVIN,
                                  ))
-    assert x[SimpleHvac.Xt.blower_level] == 10
+    assert x[SimpleHvac.Xt.blower_level] == 10 * 17 + 94
 
     # this tests the linear interpolation
     # cabin -3.5
@@ -50,7 +50,7 @@ def test_blower_level():
                                  cabin_humidity=0.5,
                                  vent_temperature=22 - 18 + KELVIN,
                                  ))
-    assert x[SimpleHvac.Xt.blower_level] == (10 + 5) / 2
+    assert x[SimpleHvac.Xt.blower_level] == (10 + 5) / 2 * 17 + 94
 
     # TODO - this may be wrong - perhaps decreasing only comes into
     # effect when temperature reaches target at least?
@@ -63,7 +63,7 @@ def test_blower_level():
                                  cabin_humidity=0.5,
                                  vent_temperature=22 - 18 + KELVIN,
                                  ))
-    assert x[SimpleHvac.Xt.blower_level] == 5
+    assert x[SimpleHvac.Xt.blower_level] == 5 * 17 + 94
 
 
 def test_vent_temperature():

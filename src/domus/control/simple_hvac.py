@@ -114,7 +114,8 @@ class SimpleHvac:
         self.dt = dt
         self.increasing_temps = np.array([MINTEMP, -15, -5, -2, 5, 8, 18, MAXTEMP])
         self.decreasing_temps = np.array([MINTEMP, -18, -8, -5, 2, 5, 15, MAXTEMP])
-        self.blower_speed_lu = [18, 18, 10, 5, 5, 10, 18, 18]
+        # blower power is original setting (5 - 18) x 17 + 94
+        self.blower_power_lu = [400, 400, 264, 179, 179, 264, 400, 400]
         self.last_cabin_temperature = 0
         self.cabin_temperature = 0
         self.vent_temperature = 0
@@ -156,7 +157,7 @@ class SimpleHvac:
         else:
             temps = self.decreasing_temps
 
-        level = np.interp(current_diff, temps, self.blower_speed_lu)
+        level = np.interp(current_diff, temps, self.blower_power_lu)
         self.state[self.Xt.blower_level] = level
 
     def update_pid(self, action):
@@ -175,6 +176,7 @@ class SimpleHvac:
 
     def update_window_heating(self, action):
         # use simple dewpoint calculation given on wikipedia
+        assert action[self.Ut.cabin_humidity] <= 1
         tdp = action[self.Ut.cabin_temperature] - (1 - action[self.Ut.cabin_humidity]) * 20
         # simple on / off used here temporarily
         self.state[self.Xt.window_heating] = int(action[self.Ut.window_temperature] - tdp < 2)
