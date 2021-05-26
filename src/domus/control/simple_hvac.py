@@ -73,10 +73,16 @@ class SimpleHvac:
                        70 + KELVIN,
                        60 + KELVIN])
 
-    def __init__(self, dt=1, setpoint=DEFAULT_SETPOINT):
-        """ Create a new SimpleHvac.
+    def __init__(self, dt=1):
+        """Create a new SimpleHvac.
 
         All temperatures are given in kelvin.
+
+        All humidities are given in the range 0 to 1.
+
+        Power is in watts.
+
+        Flap positions are in the range 0 to 1.
 
         Controller consists of several independent controls.
 
@@ -87,28 +93,33 @@ class SimpleHvac:
 
           Time step for each call to step method
 
-        setpoint : float
+        Description
+        -----------
 
-          Target temperature in kelvin
+        SimpleHvac is a simplified controller roughly built according
+        to the DOMUS WP5 specification.
 
+        The behaviour of the controller is as follows:
 
-        Blower Level
-        ------------
+        1. The blower power is set according to a hysteresis curve
+        such that when the temperature is further from the setpoint,
+        the power is increased. The minimum power setting is 179 and
+        the maximum is 400 W.
 
-        Blower is low when close to the target temperature and higher when further away.
+        2. The heater is controlled using a PID controller to achieve
+        a particular vent temperature when heating.
 
-        Hysteresis is used to avoid control jitter.
+        3. The compressor is controlled using a PID controller to
+        achieve a target vent temperature when cooling.
 
-        Ptc Temperature
-        ----------------
+        4. Recirculation is set to operate in recirculation mode for a
+        maximum of 570 seconds and then switch to fresh mode for 30
+        seconds without reference to the temperatures.
 
-        Ptc temperature is altered according to a PID controller.
+        5. Window heating turns on when the dewpoint temperature of
+        the cabin is under 2 degrees kelvin more than the window
+        temperature.
 
-
-        Compressor Speed
-        ----------------
-
-        Compressor speed is altered according to a PID controlller.
 
         """
         self.dt = dt
@@ -120,7 +131,6 @@ class SimpleHvac:
         self.cabin_temperature = 0
         self.vent_temperature = 0
         self.cabin_humidity = 0.5
-        self.target_cabin_temperature = setpoint
         self.ptc_pid = PID(PTC_P, PTC_I, PTC_D,
                            setpoint=PTC_VENT_TARGET,
                            sample_time=0,
@@ -136,9 +146,22 @@ class SimpleHvac:
         """step takes as input an action vector (see Ut) and returns a state
         vector (see Xt)
 
+        Parameters
+        ----------
+
+        action : array
+
+          See Ut for the format and length of this array
+
+        Returns
+        -------
+
+        array - see Xt for the format of this array
+
         """
         # clip
         action = np.clip(action, self.UT_MIN, self.UT_MAX)
+        self.update_heating_mode(action)
         self.update_blower_level(action)
         self.update_pid(action)
         self.update_window_heating(action)
@@ -147,12 +170,16 @@ class SimpleHvac:
         self.last_cabin_temperature = action[self.Ut.cabin_temperature]
         return self.state
 
-    def update_blower_level(self, action):
-        """ varies between 5 and 18 """
+    def update_heating_mode(self, action):
+        if self.heating_mode and action[self.Ut.cabin_temperature] > action[self.Ut.setpoint] - 1:
+            self.heating_mode = False
+        elif not self.heating_mode and action[self.Ut.cabin_temperature] < action[self.Ut.setpoint] + 1:
+            self.heating_mode = True
 
+    def update_blower_level(self, action):
         current_diff = action[self.Ut.cabin_temperature] - action[self.Ut.setpoint]
 
-        if action[self.Ut.cabin_temperature] > self.last_cabin_temperature:
+        if self.heating_mode:
             temps = self.increasing_temps
         else:
             temps = self.decreasing_temps
@@ -161,10 +188,6 @@ class SimpleHvac:
         self.state[self.Xt.blower_level] = level
 
     def update_pid(self, action):
-        if self.heating_mode and action[self.Ut.cabin_temperature] > action[self.Ut.setpoint] - 1:
-            self.heating_mode = False
-        elif not self.heating_mode and action[self.Ut.cabin_temperature] < action[self.Ut.setpoint] + 1:
-            self.heating_mode = True
 
         # heater_power
         self.state[self.Xt.heater_power] = self.ptc_pid(action[self.Ut.vent_temperature],

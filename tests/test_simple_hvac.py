@@ -52,12 +52,9 @@ def test_blower_level():
                                  ))
     assert x[SimpleHvac.Xt.blower_level] == (10 + 5) / 2 * 17 + 94
 
-    # TODO - this may be wrong - perhaps decreasing only comes into
-    # effect when temperature reaches target at least?
-
     # decreasing
     x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
-                                 cabin_temperature=22 - 5 + KELVIN,
+                                 cabin_temperature=22 + 2 + KELVIN,
                                  setpoint=22 + KELVIN,
                                  window_temperature=22 - 18 + KELVIN,
                                  cabin_humidity=0.5,
