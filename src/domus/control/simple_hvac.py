@@ -167,9 +167,9 @@ class SimpleHvac:
         return self.state
 
     def update_heating_mode(self, action):
-        if self.heating_mode and action[self.Ut.cabin_temperature] > action[self.Ut.setpoint] - 1:
+        if self.heating_mode and action[self.Ut.cabin_temperature] > action[self.Ut.setpoint] + 1:
             self.heating_mode = False
-        elif not self.heating_mode and action[self.Ut.cabin_temperature] < action[self.Ut.setpoint] + 1:
+        elif not self.heating_mode and action[self.Ut.cabin_temperature] < action[self.Ut.setpoint] - 1:
             self.heating_mode = True
 
     def update_blower_level(self, action):

@@ -106,6 +106,51 @@ def test_vent_temperature():
     assert x[SimpleHvac.Xt.heater_power] == 0.0
     assert x[SimpleHvac.Xt.compressor_power] == 3000.0
 
+    assert not control.heating_mode
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 - 1 + KELVIN,  # <<< limit of not cold enough to switch
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=22 + KELVIN,
+                                 ))
+    assert not control.heating_mode
+    assert x[SimpleHvac.Xt.heater_power] == 0
+    assert x[SimpleHvac.Xt.compressor_power] > 0
+
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 - 1.1 + KELVIN,  # <<< now cold enough
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=22 + KELVIN,
+                                 ))
+    assert control.heating_mode
+    assert x[SimpleHvac.Xt.heater_power] > 0
+    assert x[SimpleHvac.Xt.compressor_power] == 0
+
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 + 1 + KELVIN,  # <<< at limit
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=22 + KELVIN,
+                                 ))
+    assert control.heating_mode
+    assert x[SimpleHvac.Xt.heater_power] > 0
+    assert x[SimpleHvac.Xt.compressor_power] == 0
+
+    x = control.step(kw_to_array(SimpleHvac.UT_COLUMNS,
+                                 cabin_temperature=22 + 1.1 + KELVIN,  # <<< above limit
+                                 setpoint=22 + KELVIN,
+                                 window_temperature=22 - 18 + KELVIN,
+                                 cabin_humidity=0.5,
+                                 vent_temperature=22 + KELVIN,
+                                 ))
+    assert not control.heating_mode
+    assert x[SimpleHvac.Xt.heater_power] == 0
+    assert x[SimpleHvac.Xt.compressor_power] > 0
+
 
 def test_demist():
     control = SimpleHvac()
