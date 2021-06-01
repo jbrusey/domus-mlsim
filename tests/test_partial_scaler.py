@@ -3,6 +3,7 @@ from domus.mlsim.partial_scaler import PartialScaler
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 from numpy.testing import assert_array_almost_equal
+from pytest import mark
 
 
 def test_partial_scaler():
@@ -32,3 +33,17 @@ def test_partial_scaler():
 
     t = pu.transform(orig)
     assert_array_almost_equal(pu.inverse_transform(t), orig)
+
+
+@mark.xfail(raises=NotImplementedError)
+def test_notimp():
+    df = pd.DataFrame({'a': [101, 102, 103, 104, 105],
+                       'b': [201, 204, 209, 216, 225],
+                       'c': [301, 308, 327, 381, 543],
+                       'd': [405, 406, 407, 408, 409]})
+
+    X = df.to_numpy()
+    s = MinMaxScaler()
+    s.fit(X)
+    px = PartialScaler(s, 0, 2, n_features=4)
+    assert px.fit(X)
