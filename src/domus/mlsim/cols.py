@@ -101,9 +101,9 @@ DV1_XT_COLUMNS = sorted([
     'ws',
 ])
 
-DV1Ut = IntEnum('DV1Ut', DV0_UT_COLUMNS, start=0)
+DV1Ut = IntEnum('DV1Ut', DV1_UT_COLUMNS, start=0)
 
-DV1Xt = IntEnum('DV1Xt', DV0_XT_COLUMNS, start=0)
+DV1Xt = IntEnum('DV1Xt', DV1_XT_COLUMNS, start=0)
 
 HVAC_UT_COLUMNS = sorted([
     'blw_power',
