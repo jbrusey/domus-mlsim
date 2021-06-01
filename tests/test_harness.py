@@ -18,6 +18,7 @@ from domus.mlsim.harness import (estimate_cabin_temperature,
                                  update_dv0_inputs,
                                  make_dv0_sim,
                                  make_hvac_sim,
+                                 run_dv0_sim,
                                  DV0Xt,
                                  DV0Ut,
                                  HvacXt,
@@ -26,6 +27,7 @@ from domus.mlsim.harness import (estimate_cabin_temperature,
                                  HVAC_XT_COLUMNS,
                                  )
 from domus.control.simple_hvac import SimpleHvac
+from domus.mlsim.cols import KELVIN
 import numpy as np
 from numpy.testing import assert_array_equal
 import joblib
@@ -139,3 +141,30 @@ def test_make_hvac_sim():
     hvac_sim = make_hvac_sim(hvac_model, hvac_scaler, hvac_state)
 
     assert hvac_sim is not None
+
+
+def test_run_dv0_sim():
+    ROOT = '../'
+    DV0_MODEL = ROOT + 'model/3d_lr.joblib'
+    HVAC_MODEL = ROOT + 'model/hvac_lr.joblib'
+    dv0_scaler, dv0_model = joblib.load(DV0_MODEL)
+    hvac_scaler, hvac_model = joblib.load(HVAC_MODEL)
+
+    cabin, hvac, ctrl = run_dv0_sim(dv0_model,
+                                    dv0_scaler,
+                                    hvac_model,
+                                    hvac_scaler,
+                                    SimpleHvac(),
+                                    setpoint=KELVIN + 22,
+                                    n=100,
+                                    ambient_t=KELVIN + 1,
+                                    ambient_rh=0.99,
+                                    cabin_t=KELVIN + 1,
+                                    cabin_v=0,
+                                    cabin_rh=0.99,
+                                    solar1=100,
+                                    solar2=50,
+                                    car_speed=100)
+
+    # temperature should increase
+    assert cabin[50, DV0Xt.t_drvr1] > cabin[0, DV0Xt.t_drvr1]
