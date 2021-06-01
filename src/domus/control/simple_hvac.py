@@ -33,8 +33,8 @@ PTC_MAX = 6000
 PTC_VENT_TARGET = 60 + KELVIN
 
 COMPRESSOR_P = -1000
-COMPRESSOR_I = 0
-COMPRESSOR_D = 0
+COMPRESSOR_I = -1
+COMPRESSOR_D = -10
 COMPRESSOR_MAX = 3000
 COMPRESSOR_VENT_TARGET = 15 + KELVIN
 
@@ -55,6 +55,7 @@ class SimpleHvac:
                  ['blower_level',
                   'compressor_power',
                   'heater_power',
+                  'fan_power',
                   'recirc',
                   'window_heating'],
                  start=0)
@@ -127,10 +128,6 @@ class SimpleHvac:
         self.decreasing_temps = np.array([MINTEMP, -18, -8, -5, 2, 5, 15, MAXTEMP])
         # blower power is original setting (5 - 18) x 17 + 94
         self.blower_power_lu = [400, 400, 264, 179, 179, 264, 400, 400]
-        self.last_cabin_temperature = 0
-        self.cabin_temperature = 0
-        self.vent_temperature = 0
-        self.cabin_humidity = 0.5
         self.ptc_pid = PID(PTC_P, PTC_I, PTC_D,
                            setpoint=PTC_VENT_TARGET,
                            sample_time=0,
@@ -167,7 +164,6 @@ class SimpleHvac:
         self.update_window_heating(action)
         self.update_recirc(action)
 
-        self.last_cabin_temperature = action[self.Ut.cabin_temperature]
         return self.state
 
     def update_heating_mode(self, action):
@@ -196,6 +192,8 @@ class SimpleHvac:
         # compressor_power
         self.state[self.Xt.compressor_power] = self.compressor_pid(action[self.Ut.vent_temperature],
                                                                    dt=self.dt) if not self.heating_mode else 0
+        # fan power - set to same as cmp but rescaled
+        self.state[self.Xt.fan_power] = self.state[self.Xt.compressor_power] / 3000 * 400
 
     def update_window_heating(self, action):
         # use simple dewpoint calculation given on wikipedia
