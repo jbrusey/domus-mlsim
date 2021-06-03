@@ -127,7 +127,7 @@ class SimpleHvac:
         self.increasing_temps = np.array([MINTEMP, -15, -5, -2, 5, 8, 18, MAXTEMP])
         self.decreasing_temps = np.array([MINTEMP, -18, -8, -5, 2, 5, 15, MAXTEMP])
         # blower power is original setting (5 - 18) x 17 + 94
-        self.blower_power_lu = [400, 400, 264, 179, 179, 264, 400, 400]
+        self.blower_power_lu = np.array([18, 18, 10, 5, 5, 10, 18, 18]) * 17 + 94
         self.ptc_pid = PID(PTC_P, PTC_I, PTC_D,
                            setpoint=PTC_VENT_TARGET,
                            sample_time=0,

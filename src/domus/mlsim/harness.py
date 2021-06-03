@@ -149,14 +149,26 @@ def update_dv1_inputs(b_u, h_x, c_x):
     """ update dv1 input vector b_u based on hvac state h_x and control state c_x.
     """
     b_u[[
+        DV1Ut.smart_vent_diffuse_low,
+        DV1Ut.new_air_mode_Floor_SO_Defrost,
+        DV1Ut.seat_off,
+    ]] = [1, 1, 1]
+
+    b_u[[
         DV1Ut.HvacMain,
-        DV1Ut.vent_flow_rate,
     ]] = h_x[[
         HvacXt.vent_T,
-        HvacXt.evp_mdot,
     ]]
 
-    b_u[DV1Ut.recirc] = c_x[SimpleHvac.Xt.recirc]
+    b_u[[DV1Ut.recirc,
+         DV1Ut.window_heating,
+         ]] = c_x[[SimpleHvac.Xt.recirc,
+                   SimpleHvac.Xt.window_heating
+                   ]]
+    # simplification to get dv1 working
+    b_u[DV1Ut.vent_flow_rate] = np.interp(c_x[SimpleHvac.Xt.blower_level],
+                                          np.array([5, 10, 18]) * 17 + 94,
+                                          np.array([1, 3, 5]))
 
 
 def make_dv0_sim(cabin_model, cabin_scaler, cabin_state):
@@ -327,7 +339,8 @@ def run_dv1_sim(cabin_model,
                 cabin_rh,
                 solar1,
                 solar2,
-                car_speed):
+                car_speed,
+                log_inputs=False):
     b_x = kw_to_array(DV1_XT_COLUMNS,
                       t_drvr1=cabin_t,
                       t_drvr2=cabin_t,
@@ -407,6 +420,11 @@ def run_dv1_sim(cabin_model,
         solar1,
         solar2,
         car_speed / 100 * 27.778]
+
+    if log_inputs:
+        b_u_log = np.zeros((n, len(b_u)))
+        h_u_log = np.zeros((n, len(h_u)))
+        c_u_log = np.zeros((n, len(c_u)))
     for i in range(n):
         # average temperature over front bench
         cab_t = estimate_cabin_temperature_dv1(b_x)
@@ -423,10 +441,16 @@ def run_dv1_sim(cabin_model,
         #     h_x[HvacXt.evp_mdot] = 0
         # drive cabin
         update_dv1_inputs(b_u, h_x, c_x)
-        print(b_u.shape)
         _, b_x = cabin_mlsim.step(b_u)
         cabin[i] = b_x
         hvac[i] = h_x
         ctrl[i] = c_x
+        if log_inputs:
+            b_u_log[i] = b_u
+            h_u_log[i] = h_u
+            c_u_log[i] = c_u
 
-    return cabin, hvac, ctrl
+    if log_inputs:
+        return cabin, hvac, ctrl, b_u_log, h_u_log, c_u_log
+    else:
+        return cabin, hvac, ctrl
