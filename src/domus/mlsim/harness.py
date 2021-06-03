@@ -378,7 +378,7 @@ def run_dv1_sim(cabin_model,
                       m_psgr31=cabin_t,
                       m_psgr32=cabin_t,
                       m_psgr33=cabin_t,
-                      rh_c=cabin_rh,
+                      rhc=cabin_rh,
                       ws=cabin_t)
     h_x = kw_to_array(HVAC_XT_COLUMNS,
                       cab_RH=cabin_rh,

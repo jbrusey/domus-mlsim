@@ -96,7 +96,7 @@ DV1_XT_COLUMNS = sorted([
     't_psgr32', 't_psgr33', 'v_psgr31', 'v_psgr32', 'v_psgr33',
     'm_psgr31', 'm_psgr32', 'm_psgr33',
     # humdity
-    'rh_c',
+    'rhc',
     # windshield temperature
     'ws',
 ])
