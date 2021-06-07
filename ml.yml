@@ -16,3 +16,6 @@ dependencies:
   - scikit-learn
   - seaborn
   - xlrd
+  - pip:
+    - simple-pid
+  

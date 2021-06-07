@@ -13,6 +13,12 @@ This will create a conda environment called ~ml~ that can be activated using:
 conda activate ml
 #+END_SRC
 
+* Updating the install
+After =git pull= and particularly if ~ml.yml~ got updated, you can update the installed packages using:
+#+BEGIN_SRC sh
+conda env update -n ml -f ml.yml
+#+END_SRC
+
 * Testing your installation
 To ensure that you have everything installed ok, use:
 #+BEGIN_SRC sh
