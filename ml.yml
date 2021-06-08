@@ -7,8 +7,8 @@ dependencies:
   - boost
   - conda
   - flake8
-  - jupyter
   - matplotlib
+  - notebook
   - numpy
   - pandas
   - pep8
