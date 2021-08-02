@@ -12,7 +12,7 @@ May 27, 2021
 
 """
 
-from domus.mlsim.harness import (estimate_cabin_temperature_dv0,
+from domus_mlsim.harness import (estimate_cabin_temperature_dv0,
                                  estimate_cabin_temperature_dv1,
                                  update_control_inputs_dv0,
                                  update_control_inputs_dv1,
@@ -34,12 +34,14 @@ from domus.mlsim.harness import (estimate_cabin_temperature_dv0,
                                  HvacUt,
                                  HVAC_XT_COLUMNS,
                                  )
-from domus.control.simple_hvac import SimpleHvac
-from domus.mlsim.cols import KELVIN
+from domus_mlsim.simple_hvac import SimpleHvac
+from domus_mlsim.cols import KELVIN
 import numpy as np
 from numpy.testing import assert_array_equal
 import joblib
 
+from pathlib import Path
+ROOT = Path('.')
 
 def test_estimate_cabin_temperature_dv0():
 
@@ -190,8 +192,7 @@ def test_update_dv1_inputs():
 
 
 def test_make_dv0_sim():
-    ROOT = '../'
-    DV0_MODEL = ROOT + 'model/3d_lr.joblib'
+    DV0_MODEL = ROOT / 'model/3d_lr.joblib'
 
     dv0_scaler, dv0_model = joblib.load(DV0_MODEL)
 
@@ -203,8 +204,7 @@ def test_make_dv0_sim():
 
 
 def test_make_dv1_sim():
-    ROOT = '../'
-    DV1_MODEL = ROOT + 'model/dv1_lr.joblib'
+    DV1_MODEL = ROOT / 'model/dv1_lr.joblib'
 
     dv1_scaler, dv1_model = joblib.load(DV1_MODEL)
 
@@ -216,8 +216,7 @@ def test_make_dv1_sim():
 
 
 def test_make_hvac_sim():
-    ROOT = '../'
-    HVAC_MODEL = ROOT + 'model/hvac_lr.joblib'
+    HVAC_MODEL = ROOT / 'model/hvac_lr.joblib'
 
     hvac_scaler, hvac_model = joblib.load(HVAC_MODEL)
 
@@ -229,9 +228,8 @@ def test_make_hvac_sim():
 
 
 def test_run_dv0_sim():
-    ROOT = '../'
-    DV0_MODEL = ROOT + 'model/3d_lr.joblib'
-    HVAC_MODEL = ROOT + 'model/hvac_lr.joblib'
+    DV0_MODEL = ROOT / 'model/3d_lr.joblib'
+    HVAC_MODEL = ROOT / 'model/hvac_lr.joblib'
     dv0_scaler, dv0_model = joblib.load(DV0_MODEL)
     hvac_scaler, hvac_model = joblib.load(HVAC_MODEL)
 
@@ -256,9 +254,8 @@ def test_run_dv0_sim():
 
 
 def test_run_dv1_sim():
-    ROOT = '../'
-    DV1_MODEL = ROOT + 'model/dv1_lr.joblib'
-    HVAC_MODEL = ROOT + 'model/hvac_lr.joblib'
+    DV1_MODEL = ROOT / 'model/dv1_lr.joblib'
+    HVAC_MODEL = ROOT / 'model/hvac_lr.joblib'
     dv1_scaler, dv1_model = joblib.load(DV1_MODEL)
     hvac_scaler, hvac_model = joblib.load(HVAC_MODEL)
 
@@ -277,6 +274,33 @@ def test_run_dv1_sim():
                                     solar1=100,
                                     solar2=50,
                                     car_speed=100)
+
+    # temperature should increase
+    assert cabin[50, DV1Xt.t_drvr1] > cabin[0, DV1Xt.t_drvr1]
+
+
+def test_run_dv1_sim_log():
+    DV1_MODEL = ROOT / 'model/dv1_lr.joblib'
+    HVAC_MODEL = ROOT / 'model/hvac_lr.joblib'
+    dv1_scaler, dv1_model = joblib.load(DV1_MODEL)
+    hvac_scaler, hvac_model = joblib.load(HVAC_MODEL)
+
+    cabin, hvac, ctrl, b_u_log, h_u_log, c_u_log = run_dv1_sim(dv1_model,
+                                                               dv1_scaler,
+                                                               hvac_model,
+                                                               hvac_scaler,
+                                                               SimpleHvac(),
+                                                               setpoint=KELVIN + 22,
+                                                               n=100,
+                                                               ambient_t=KELVIN + 1,
+                                                               ambient_rh=0.99,
+                                                               cabin_t=KELVIN + 1,
+                                                               cabin_v=0,
+                                                               cabin_rh=0.99,
+                                                               solar1=100,
+                                                               solar2=50,
+                                                               car_speed=100,
+                                                               log_inputs=True)
 
     # temperature should increase
     assert cabin[50, DV1Xt.t_drvr1] > cabin[0, DV1Xt.t_drvr1]

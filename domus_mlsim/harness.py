@@ -19,7 +19,7 @@ number of timesteps under specific conditions.
 
 import numpy as np
 
-from domus.control.simple_hvac import SimpleHvac
+from .simple_hvac import SimpleHvac
 from .cols import (HvacUt,
                    HvacXt,
                    HVAC_XT_COLUMNS,

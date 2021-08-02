@@ -21,7 +21,7 @@ the windshield temperature.
 import numpy as np
 from simple_pid import PID
 from enum import IntEnum
-from domus.mlsim.cols import KELVIN
+from .cols import KELVIN
 MAXTEMP = 999
 MINTEMP = -999
 

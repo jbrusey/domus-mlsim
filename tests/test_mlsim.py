@@ -1,4 +1,4 @@
-from domus.mlsim.mlsim import MLSim
+from domus_mlsim.mlsim import MLSim
 from ux_transform import unroll_by_group
 import numpy as np
 import pandas as pd

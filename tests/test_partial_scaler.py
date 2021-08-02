@@ -1,5 +1,5 @@
 
-from domus.mlsim.partial_scaler import PartialScaler
+from domus_mlsim.partial_scaler import PartialScaler
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 from numpy.testing import assert_array_almost_equal
