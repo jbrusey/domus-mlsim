@@ -22,5 +22,7 @@ def kw_to_array(columns, **kwargs):
     """convert a set of keywords into a numpy array according to a list
     of column names"""
 
-    assert set(columns) == set(kwargs), f'Either additional {set(kwargs) - set(columns)} or missing {set(columns) - set(kwargs)} arguments'
+    assert set(columns) == set(
+        kwargs
+    ), f"Either additional {set(kwargs) - set(columns)} or missing {set(columns) - set(kwargs)} arguments"
     return np.array([kwargs[c] for c in columns])

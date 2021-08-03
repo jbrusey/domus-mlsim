@@ -19,12 +19,21 @@ from sklearn.linear_model import LinearRegression as LR
 from sklearn.base import RegressorMixin, BaseEstimator
 from .rbfdiff import rbf, variableBetas, rbfderivatives
 
-sys.setrecursionlimit(10**6)
+sys.setrecursionlimit(10 ** 6)
 
 
-def trainRBFDiffNetMISO(Xtrain, ytrain, ylagged, Phi, diPhi, order, d, num_iter,
-                        verbose=False,
-                        early_stopping=True):
+def trainRBFDiffNetMISO(
+    Xtrain,
+    ytrain,
+    ylagged,
+    Phi,
+    diPhi,
+    order,
+    d,
+    num_iter,
+    verbose=False,
+    early_stopping=True,
+):
     """
     This function trains the differential RBF network (RBF-DiffNet)
 
@@ -43,10 +52,17 @@ def trainRBFDiffNetMISO(Xtrain, ytrain, ylagged, Phi, diPhi, order, d, num_iter,
     # bias = rbfMdl.intercept_
     w_lagged = np.ones([nlags, 1]) / nlags
     # pde_coeffs = np.zeros([order * d, 1])
-    pde_coeffs = (np.ones([order, d]) * (0.1**np.arange(1, order + 1) / factorial(np.arange(1, order + 1))).reshape(-1, 1)).reshape(-1, 1)
+    pde_coeffs = (
+        np.ones([order, d])
+        * (0.1 ** np.arange(1, order + 1) / factorial(np.arange(1, order + 1))).reshape(
+            -1, 1
+        )
+    ).reshape(-1, 1)
     ytrain = ytrain.reshape(-1, 1)
 
-    ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs) + ylagged @ w_lagged
+    ypred = (
+        (np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs
+    ) + ylagged @ w_lagged
     min_err = MSE(ytrain, ypred)
     opt_weights = [rbf_coeffs, pde_coeffs, w_lagged]
 
@@ -54,27 +70,40 @@ def trainRBFDiffNetMISO(Xtrain, ytrain, ylagged, Phi, diPhi, order, d, num_iter,
         # print(i)
         # Step 1: Fix w_lagged, rbf_coeffs; solve for pde_coeffs
         try:
-            pde_coeffs = np.linalg.pinv((np.sum(rbf_coeffs.reshape(1, 1, c) * diPhi, axis=2))) @ (ytrain - ylagged @ w_lagged)
+            pde_coeffs = np.linalg.pinv(
+                (np.sum(rbf_coeffs.reshape(1, 1, c) * diPhi, axis=2))
+            ) @ (ytrain - ylagged @ w_lagged)
         except np.linalg.LinAlgError as exc:
-            print(f'pde inverse caused exception: {exc}')
+            print(f"pde inverse caused exception: {exc}")
 
         # Step 2: Fix rbf_coeffs, pde_coeffs; solve for w_lagged
         try:
-            w_lagged = np.linalg.pinv(ylagged) @ (ytrain - ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs))
+            w_lagged = np.linalg.pinv(ylagged) @ (
+                ytrain
+                - (
+                    (np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))
+                    @ rbf_coeffs
+                )
+            )
         except np.linalg.LinAlgError as exc:
-            print(f'w inverse caused exception: {exc}')
+            print(f"w inverse caused exception: {exc}")
 
         # Step 3: Fix w_lagged, pde_coeffs; solve for rbf_coeffs
         try:
-            rbf_coeffs = np.linalg.pinv((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))) @ (ytrain - ylagged @ w_lagged)
+            rbf_coeffs = np.linalg.pinv(
+                (np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))
+            ) @ (ytrain - ylagged @ w_lagged)
         except np.linalg.LinAlgError as exc:
-            print(f'rbf inverse caused exception: {exc}')
+            print(f"rbf inverse caused exception: {exc}")
 
         # TODO Check - var is assigned but never used
         # bias = np.mean(ytrain - Phi @ rbf_coeffs)
 
         # Compute predictions and errors
-        ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs) + ylagged @ w_lagged
+        ypred = (
+            (np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))
+            @ rbf_coeffs
+        ) + ylagged @ w_lagged
         err = MSE(ytrain, ypred)
         if verbose:
             print(f"{i} iteration: mse={err}")
@@ -92,12 +121,14 @@ def trainRBFDiffNetMIMO(X_train, Y_train, c, nlags, order, p, num_iter, verbose=
     n_train, d = X_train.shape
     centres, betas = variableBetas(X_train, c, p)
     Phi = rbf(X_train, centres, betas)
-    diPhi = rbfderivatives(X_train, centres, betas, order, Phi).reshape([n_train, order * d, c])
+    diPhi = rbfderivatives(X_train, centres, betas, order, Phi).reshape(
+        [n_train, order * d, c]
+    )
 
     WEIGHTS = {}
     for i in range(Y_train.shape[1]):
         if verbose:
-            print('training output', i)
+            print("training output", i)
         lagged_indices = [i + count * Y_train.shape[1] for count in range(nlags)]
 
         y_lagged = X_train[:, lagged_indices]
@@ -105,8 +136,9 @@ def trainRBFDiffNetMIMO(X_train, Y_train, c, nlags, order, p, num_iter, verbose=
             y_lagged = y_lagged.reshape(-1, 1)
         y_train = Y_train[:, i].reshape(-1, 1)
 
-        opt_weights = trainRBFDiffNetMISO(X_train, y_train, y_lagged, Phi, diPhi, order, d, num_iter,
-                                          verbose=verbose)
+        opt_weights = trainRBFDiffNetMISO(
+            X_train, y_train, y_lagged, Phi, diPhi, order, d, num_iter, verbose=verbose
+        )
         WEIGHTS[i] = opt_weights
 
     return WEIGHTS, centres, betas
@@ -119,7 +151,9 @@ def testRBFDiffNetMIMO(X_test, nlags, WEIGHTS, centres, betas):
         weights = WEIGHTS[i]
         lagged_indices = [i + count * num_out for count in range(nlags)]
         ylagged = X_test[:, lagged_indices]
-        ypred = testRBFDiffNetMISO(X_test, ylagged, weights, centres, betas).reshape(-1, 1)
+        ypred = testRBFDiffNetMISO(X_test, ylagged, weights, centres, betas).reshape(
+            -1, 1
+        )
         YPRED.append(ypred)
     YPREDICT = np.column_stack(tuple(YPRED))
     return YPREDICT
@@ -143,8 +177,12 @@ def testRBFDiffNetMISO(Xtest, ylagged, weights, centres, betas):
     # TODO check - variable is assigned but never used
     # nlags = len(w_lagged)
     Phi = rbf(Xtest, centres, betas)
-    diPhi = rbfderivatives(Xtest, centres, betas, order, Phi).reshape([n_test, order * d, c])
-    ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs) + ylagged @ w_lagged
+    diPhi = rbfderivatives(Xtest, centres, betas, order, Phi).reshape(
+        [n_test, order * d, c]
+    )
+    ypred = (
+        (np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs
+    ) + ylagged @ w_lagged
     return ypred
 
 
@@ -154,6 +192,7 @@ class RBFDiffMIMORegressor(RegressorMixin, BaseEstimator):
     RBFDiffMIMORegressor
 
     """
+
     def __init__(self, c, nlags, order, p, num_iter, verbose=False):
         self.c = c
         self.nlags = nlags
@@ -163,17 +202,16 @@ class RBFDiffMIMORegressor(RegressorMixin, BaseEstimator):
         self.verbose = verbose
 
     def fit(self, x, y):
-        self.weights, self.centres, self.betas = trainRBFDiffNetMIMO(x, y,
-                                                                     self.c,
-                                                                     self.nlags,
-                                                                     self.order,
-                                                                     self.p,
-                                                                     self.num_iter,
-                                                                     verbose=self.verbose)
+        self.weights, self.centres, self.betas = trainRBFDiffNetMIMO(
+            x,
+            y,
+            self.c,
+            self.nlags,
+            self.order,
+            self.p,
+            self.num_iter,
+            verbose=self.verbose,
+        )
 
     def predict(self, x):
-        return testRBFDiffNetMIMO(x,
-                                  self.nlags,
-                                  self.weights,
-                                  self.centres,
-                                  self.betas)
+        return testRBFDiffNetMIMO(x, self.nlags, self.weights, self.centres, self.betas)

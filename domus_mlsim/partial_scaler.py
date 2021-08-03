@@ -17,7 +17,6 @@ import numpy as np
 
 
 class PartialScaler(TransformerMixin, BaseEstimator):
-
     def __init__(self, scaler, lower, upper, n_features):
         """.
 
@@ -60,19 +59,19 @@ class PartialScaler(TransformerMixin, BaseEstimator):
 
     def zeropad(self, X):
         assert X.shape[1] == self.upper - self.lower
-        return np.hstack([np.zeros((X.shape[0], self.lower)),
-                          X,
-                          np.zeros((X.shape[0], self.n_features - self.upper))])
+        return np.hstack(
+            [
+                np.zeros((X.shape[0], self.lower)),
+                X,
+                np.zeros((X.shape[0], self.n_features - self.upper)),
+            ]
+        )
 
     def strippad(self, X):
-        return X[:, self.lower:self.upper]
+        return X[:, self.lower : self.upper]
 
     def transform(self, X):
-        return self.strippad(
-            self.scaler.transform(
-                self.zeropad(X)))
+        return self.strippad(self.scaler.transform(self.zeropad(X)))
 
     def inverse_transform(self, X):
-        return self.strippad(
-            self.scaler.inverse_transform(
-                self.zeropad(X)))
+        return self.strippad(self.scaler.inverse_transform(self.zeropad(X)))

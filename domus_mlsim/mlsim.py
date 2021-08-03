@@ -31,20 +31,22 @@ class MLSim:
     be run by successive calls to ~step~.
 
     """
-    def __init__(self,
-                 model,
-                 scaler,
-                 initial_state,
-                 xlag,
-                 ulag,
-                 xlen,
-                 ulen,
-                 interval=1,
-                 initial_clock=0,
-                 prior_actions=None,
-                 ut_min=None,
-                 ut_max=None
-                 ):
+
+    def __init__(
+        self,
+        model,
+        scaler,
+        initial_state,
+        xlag,
+        ulag,
+        xlen,
+        ulen,
+        interval=1,
+        initial_clock=0,
+        prior_actions=None,
+        ut_min=None,
+        ut_max=None,
+    ):
         """construct a simulator object
 
         Parameters
@@ -152,21 +154,16 @@ class MLSim:
             # for first step, assume that the same control inputs were
             # used for all previous steps
             if self.prior_actions is not None:
-                self.ut = np.vstack([self.u_scaler.transform(self.prior_actions),
-                                     ut])
+                self.ut = np.vstack([self.u_scaler.transform(self.prior_actions), ut])
             else:
                 self.ut = np.vstack([ut] * (self.ulag))
             self.first = False
         else:
-            self.ut = np.append(self.ut[1:],
-                                ut,
-                                axis=0)
+            self.ut = np.append(self.ut[1:], ut, axis=0)
         assert self.ut.shape == (self.ulag, self.ulen)
 
         x = np.hstack((self.xt.reshape(1, -1), self.ut.reshape(1, -1)))
         new_xt = self.model.predict(x)
-        self.xt = np.append(self.xt[1:],
-                            new_xt.reshape(1, -1),
-                            axis=0)
+        self.xt = np.append(self.xt[1:], new_xt.reshape(1, -1), axis=0)
         self.clock += self.interval
         return (self.clock, self.x_scaler.inverse_transform(new_xt)[0])

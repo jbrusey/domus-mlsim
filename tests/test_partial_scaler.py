@@ -1,4 +1,3 @@
-
 from domus_mlsim.partial_scaler import PartialScaler
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
@@ -8,10 +7,14 @@ from pytest import mark
 
 def test_partial_scaler():
 
-    df = pd.DataFrame({'a': [101, 102, 103, 104, 105],
-                       'b': [201, 204, 209, 216, 225],
-                       'c': [301, 308, 327, 381, 543],
-                       'd': [405, 406, 407, 408, 409]})
+    df = pd.DataFrame(
+        {
+            "a": [101, 102, 103, 104, 105],
+            "b": [201, 204, 209, 216, 225],
+            "c": [301, 308, 327, 381, 543],
+            "d": [405, 406, 407, 408, 409],
+        }
+    )
 
     X = df.to_numpy()
     s = MinMaxScaler()
@@ -37,10 +40,14 @@ def test_partial_scaler():
 
 @mark.xfail(raises=NotImplementedError)
 def test_notimp():
-    df = pd.DataFrame({'a': [101, 102, 103, 104, 105],
-                       'b': [201, 204, 209, 216, 225],
-                       'c': [301, 308, 327, 381, 543],
-                       'd': [405, 406, 407, 408, 409]})
+    df = pd.DataFrame(
+        {
+            "a": [101, 102, 103, 104, 105],
+            "b": [201, 204, 209, 216, 225],
+            "c": [301, 308, 327, 381, 543],
+            "d": [405, 406, 407, 408, 409],
+        }
+    )
 
     X = df.to_numpy()
     s = MinMaxScaler()

@@ -48,17 +48,15 @@ def df_to_xy(df, x_columns, u_columns, xlag=None, ulag=None):
     #
     # the smallest shift must be zero - which will be named xn_ where n is the xlag + 1 value
 
-    xdf = [df[x_columns].copy().shift(xlag - i)
-           for i in range(xlag + 1)]
+    xdf = [df[x_columns].copy().shift(xlag - i) for i in range(xlag + 1)]
     for i in range(xlag + 1):
-        xdf[i].columns = f'x{i + 1}_' + xdf[i].columns
+        xdf[i].columns = f"x{i + 1}_" + xdf[i].columns
 
     # as with x, u is shifted u1_, u2_, ... so that un_ where n is ulag matches with xn
 
-    udf = [df[u_columns].copy().shift(ulag - 1 - i)
-           for i in range(ulag)]
+    udf = [df[u_columns].copy().shift(ulag - 1 - i) for i in range(ulag)]
     for i in range(ulag):
-        udf[i].columns = f'u{i + 1}_' + udf[i].columns
+        udf[i].columns = f"u{i + 1}_" + udf[i].columns
 
     vdf = []
     rows_to_drop = max(xlag, ulag)
@@ -117,12 +115,12 @@ def unroll_by_group(df, group_column, x_columns, u_columns, xlag, ulag):
     assert isinstance(df, pd.DataFrame)
     groups = df[group_column].unique()
 
-    xy = [df_to_xy(df[df[group_column] == exp],
-                   x_columns,
-                   u_columns,
-                   xlag=xlag,
-                   ulag=ulag)
-          for exp in groups]
+    xy = [
+        df_to_xy(
+            df[df[group_column] == exp], x_columns, u_columns, xlag=xlag, ulag=ulag
+        )
+        for exp in groups
+    ]
 
     # generate group column
     glist = np.repeat(groups, repeats=[len(x) for x, y in xy])

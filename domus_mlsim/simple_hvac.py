@@ -22,6 +22,7 @@ import numpy as np
 from simple_pid import PID
 from enum import IntEnum
 from .cols import KELVIN
+
 MAXTEMP = 999
 MINTEMP = -999
 
@@ -44,35 +45,35 @@ MAX_FRESH_TIME = 30
 
 class SimpleHvac:
 
-    Ut = IntEnum('Ut',
-                 ['cabin_humidity',
-                  'cabin_temperature',
-                  'setpoint',
-                  'vent_temperature',
-                  'window_temperature'],
-                 start=0)
-    Xt = IntEnum('Xt',
-                 ['blower_level',
-                  'compressor_power',
-                  'heater_power',
-                  'fan_power',
-                  'recirc',
-                  'window_heating'],
-                 start=0)
+    Ut = IntEnum(
+        "Ut",
+        [
+            "cabin_humidity",
+            "cabin_temperature",
+            "setpoint",
+            "vent_temperature",
+            "window_temperature",
+        ],
+        start=0,
+    )
+    Xt = IntEnum(
+        "Xt",
+        [
+            "blower_level",
+            "compressor_power",
+            "heater_power",
+            "fan_power",
+            "recirc",
+            "window_heating",
+        ],
+        start=0,
+    )
 
     UT_COLUMNS = [x.name for x in Ut]
     XT_COLUMNS = [x.name for x in Xt]
 
-    UT_MIN = np.array([0,
-                       -20 + KELVIN,
-                       15 + KELVIN,
-                       0 + KELVIN,
-                       -20 + KELVIN])
-    UT_MAX = np.array([1,
-                       80 + KELVIN,
-                       30 + KELVIN,
-                       70 + KELVIN,
-                       60 + KELVIN])
+    UT_MIN = np.array([0, -20 + KELVIN, 15 + KELVIN, 0 + KELVIN, -20 + KELVIN])
+    UT_MAX = np.array([1, 80 + KELVIN, 30 + KELVIN, 70 + KELVIN, 60 + KELVIN])
 
     def __init__(self, dt=1):
         """Create a new SimpleHvac.
@@ -128,13 +129,21 @@ class SimpleHvac:
         self.decreasing_temps = np.array([MINTEMP, -18, -8, -5, 2, 5, 15, MAXTEMP])
         # blower power is original setting (5 - 18) x 17 + 94
         self.blower_power_lu = np.array([18, 18, 10, 5, 5, 10, 18, 18]) * 17 + 94
-        self.ptc_pid = PID(PTC_P, PTC_I, PTC_D,
-                           setpoint=PTC_VENT_TARGET,
-                           sample_time=0,
-                           output_limits=(0.0, PTC_MAX))
-        self.compressor_pid = PID(COMPRESSOR_P, COMPRESSOR_I, COMPRESSOR_D,
-                                  setpoint=COMPRESSOR_VENT_TARGET,
-                                  output_limits=(0.0, COMPRESSOR_MAX))
+        self.ptc_pid = PID(
+            PTC_P,
+            PTC_I,
+            PTC_D,
+            setpoint=PTC_VENT_TARGET,
+            sample_time=0,
+            output_limits=(0.0, PTC_MAX),
+        )
+        self.compressor_pid = PID(
+            COMPRESSOR_P,
+            COMPRESSOR_I,
+            COMPRESSOR_D,
+            setpoint=COMPRESSOR_VENT_TARGET,
+            output_limits=(0.0, COMPRESSOR_MAX),
+        )
         self.recirc_time = 0
         self.heating_mode = False
         self.state = np.zeros((len(self.Xt)))
@@ -167,9 +176,15 @@ class SimpleHvac:
         return self.state
 
     def update_heating_mode(self, action):
-        if self.heating_mode and action[self.Ut.cabin_temperature] > action[self.Ut.setpoint] + 1:
+        if (
+            self.heating_mode
+            and action[self.Ut.cabin_temperature] > action[self.Ut.setpoint] + 1
+        ):
             self.heating_mode = False
-        elif not self.heating_mode and action[self.Ut.cabin_temperature] < action[self.Ut.setpoint] - 1:
+        elif (
+            not self.heating_mode
+            and action[self.Ut.cabin_temperature] < action[self.Ut.setpoint] - 1
+        ):
             self.heating_mode = True
 
     def update_blower_level(self, action):
@@ -186,21 +201,34 @@ class SimpleHvac:
     def update_pid(self, action):
 
         # heater_power
-        self.state[self.Xt.heater_power] = self.ptc_pid(action[self.Ut.vent_temperature],
-                                                        dt=self.dt) if self.heating_mode else 0
+        self.state[self.Xt.heater_power] = (
+            self.ptc_pid(action[self.Ut.vent_temperature], dt=self.dt)
+            if self.heating_mode
+            else 0
+        )
 
         # compressor_power
-        self.state[self.Xt.compressor_power] = self.compressor_pid(action[self.Ut.vent_temperature],
-                                                                   dt=self.dt) if not self.heating_mode else 0
+        self.state[self.Xt.compressor_power] = (
+            self.compressor_pid(action[self.Ut.vent_temperature], dt=self.dt)
+            if not self.heating_mode
+            else 0
+        )
         # fan power - set to same as cmp but rescaled
-        self.state[self.Xt.fan_power] = self.state[self.Xt.compressor_power] / 3000 * 400
+        self.state[self.Xt.fan_power] = (
+            self.state[self.Xt.compressor_power] / 3000 * 400
+        )
 
     def update_window_heating(self, action):
         # use simple dewpoint calculation given on wikipedia
         assert action[self.Ut.cabin_humidity] <= 1
-        tdp = action[self.Ut.cabin_temperature] - (1 - action[self.Ut.cabin_humidity]) * 20
+        tdp = (
+            action[self.Ut.cabin_temperature]
+            - (1 - action[self.Ut.cabin_humidity]) * 20
+        )
         # simple on / off used here temporarily
-        self.state[self.Xt.window_heating] = int(action[self.Ut.window_temperature] - tdp < 2)
+        self.state[self.Xt.window_heating] = int(
+            action[self.Ut.window_temperature] - tdp < 2
+        )
 
     def update_recirc(self, action):
         if self.state[self.Xt.recirc]:

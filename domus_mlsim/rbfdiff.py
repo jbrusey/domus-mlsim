@@ -20,7 +20,7 @@ from sklearn.linear_model import LinearRegression as LR
 
 from sklearn.base import RegressorMixin, BaseEstimator
 
-sys.setrecursionlimit(10**6)
+sys.setrecursionlimit(10 ** 6)
 
 
 def variableBetas(X, c, p, random_state=None):
@@ -68,7 +68,7 @@ def variableBetas(X, c, p, random_state=None):
         tree = KDTree(Xk)
         dref, iref = tree.query(Muk.reshape(1, -1), k=p)
         sigma = np.mean(dref)
-        betas[label] = 1 / (2 * sigma**2)
+        betas[label] = 1 / (2 * sigma ** 2)
         centres[label] = Muk
     # TODO consider asserting : not np.isinf(betas).any()
     assert not np.isinf(betas).any()
@@ -109,7 +109,7 @@ def rbf(X, centres, betas):
     """
     N, d = X.shape
     assert len(betas) == centres.shape[0]
-    Phi = np.exp(- betas * np.linalg.norm(X.reshape(N, 1, d) - centres, axis=2) ** 2)
+    Phi = np.exp(-betas * np.linalg.norm(X.reshape(N, 1, d) - centres, axis=2) ** 2)
     return Phi
 
 
@@ -143,7 +143,7 @@ def rbfderivatives(X, centres, betas, order, Phi):
                     u = np.zeros([d, c])
                 leibniz_sum = leibniz_sum + (bin_coeff * u * diPhi_n[k])
             diPhi_n[i] = leibniz_sum
-        diPhi[n] = diPhi_n[1:]    # Excluding the zeroth derivative
+        diPhi[n] = diPhi_n[1:]  # Excluding the zeroth derivative
     return diPhi
 
 
@@ -161,9 +161,11 @@ def obj_func(x, extraArgs):
     n, _, c = diPhi.shape
     nlags = ylagged.shape[1]
     w_lagged = x[0:nlags].reshape(-1, 1)
-    rbf_coeffs = x[nlags:nlags + c].reshape(-1, 1)
-    pde_coeffs = x[nlags + c:].reshape(-1, 1)
-    ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs) + ylagged @ w_lagged
+    rbf_coeffs = x[nlags : nlags + c].reshape(-1, 1)
+    pde_coeffs = x[nlags + c :].reshape(-1, 1)
+    ypred = (
+        (np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs
+    ) + ylagged @ w_lagged
     return MSE(y, ypred)
 
 
@@ -183,41 +185,65 @@ def trainRBFDiffNet(Xtrain, ytrain, c, nlags, num_xcols, order, p, num_iter):
     n_train, d = Xtrain.shape
     centres, betas = variableBetas(Xtrain, c, p)
 
-    lagged_indices = [count * num_xcols for count in range(nlags)]  # num_xcols is the number of different state variables in x_columns
+    lagged_indices = [
+        count * num_xcols for count in range(nlags)
+    ]  # num_xcols is the number of different state variables in x_columns
     ylagged = Xtrain[:, lagged_indices]
 
     if nlags == 1:
         ylagged = ylagged.reshape(-1, 1)
     Phi = rbf(Xtrain, centres, betas)
-    diPhi = rbfderivatives(Xtrain, centres, betas, order, Phi).reshape([n_train, order * d, c])
+    diPhi = rbfderivatives(Xtrain, centres, betas, order, Phi).reshape(
+        [n_train, order * d, c]
+    )
 
     rbfMdl = LR(fit_intercept=True).fit(Phi, ytrain)
     rbf_coeffs = rbfMdl.coef_.reshape(-1, 1)
     bias = rbfMdl.intercept_
     w_lagged = np.ones([nlags, 1]) / nlags
     # pde_coeffs = np.zeros([order * d, 1])
-    pde_coeffs = (np.ones([order, d]) * (0.1**np.arange(1, order + 1) / factorial(np.arange(1, order + 1))).reshape(-1, 1)).reshape(-1, 1)
+    pde_coeffs = (
+        np.ones([order, d])
+        * (0.1 ** np.arange(1, order + 1) / factorial(np.arange(1, order + 1))).reshape(
+            -1, 1
+        )
+    ).reshape(-1, 1)
     ytrain = ytrain.reshape(-1, 1)
 
-    ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs) + ylagged @ w_lagged
+    ypred = (
+        (np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs
+    ) + ylagged @ w_lagged
     min_err = MSE(ytrain, ypred)
     opt_weights = [rbf_coeffs, pde_coeffs, w_lagged, bias]
 
     for i in range(num_iter):
         # print(i)
         # Step 1: Fix w_lagged, rbf_coeffs; solve for pde_coeffs
-        pde_coeffs = np.linalg.pinv((np.sum(rbf_coeffs.reshape(1, 1, c) * diPhi, axis=2))) @ (ytrain - ylagged @ w_lagged)
+        pde_coeffs = np.linalg.pinv(
+            (np.sum(rbf_coeffs.reshape(1, 1, c) * diPhi, axis=2))
+        ) @ (ytrain - ylagged @ w_lagged)
 
         # Step 2: Fix rbf_coeffs, pde_coeffs; solve for w_lagged
-        w_lagged = np.linalg.pinv(ylagged) @ (ytrain - ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs))
+        w_lagged = np.linalg.pinv(ylagged) @ (
+            ytrain
+            - (
+                (np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))
+                @ rbf_coeffs
+            )
+        )
 
         # Step 3: Fix w_lagged, pde_coeffs; solve for rbf_coeffs
-        rbf_coeffs = np.linalg.pinv((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))) @ (ytrain - ylagged @ w_lagged)
+        rbf_coeffs = np.linalg.pinv(
+            (np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))
+        ) @ (ytrain - ylagged @ w_lagged)
 
         bias = np.mean(ytrain - Phi @ rbf_coeffs)
 
         # Compute predictions and errors
-        ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs) + ylagged @ w_lagged
+        ypred = (
+            (np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1))
+            @ rbf_coeffs
+        ) + ylagged @ w_lagged
         err = MSE(ytrain, ypred)
 
         if err < min_err:
@@ -246,8 +272,12 @@ def testRBFDiffNet(Xtest, num_xcols, weights, centres, betas):
     lagged_indices = [count * num_xcols for count in range(nlags)]
     ylagged = Xtest[:, lagged_indices]
     Phi = rbf(Xtest, centres, betas)
-    diPhi = rbfderivatives(Xtest, centres, betas, order, Phi).reshape([n_test, order * d, c])
-    ypred = ((np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs) + ylagged @ w_lagged
+    diPhi = rbfderivatives(Xtest, centres, betas, order, Phi).reshape(
+        [n_test, order * d, c]
+    )
+    ypred = (
+        (np.sum(pde_coeffs.reshape(1, len(pde_coeffs), 1) * diPhi, axis=1)) @ rbf_coeffs
+    ) + ylagged @ w_lagged
     # ypred = Phi@rbf_coeffs + bias
     return ypred
 
@@ -258,6 +288,7 @@ class RBFDiffRegressor(RegressorMixin, BaseEstimator):
     RBFDiffRegressor
 
     """
+
     def __init__(self, c, nlags, num_xcols, order, p, num_iter):
         self.c = c
         self.nlags = nlags
@@ -267,13 +298,9 @@ class RBFDiffRegressor(RegressorMixin, BaseEstimator):
         self.num_iter = num_iter
 
     def fit(self, x, y):
-        self.weights, self.centres, self.betas = trainRBFDiffNet(x, y,
-                                                                 self.c,
-                                                                 self.nlags,
-                                                                 self.num_xcols,
-                                                                 self.order,
-                                                                 self.p,
-                                                                 self.num_iter)
+        self.weights, self.centres, self.betas = trainRBFDiffNet(
+            x, y, self.c, self.nlags, self.num_xcols, self.order, self.p, self.num_iter
+        )
 
     def predict(self, x):
         return testRBFDiffNet(x, self.num_xcols, self.weights, self.centres, self.betas)

@@ -20,31 +20,28 @@ def test_mlsim():
     c = 5
     yt = a * np.exp(-k * t) + c
 
-    df = pd.DataFrame({'t': t, 'y': yt})
+    df = pd.DataFrame({"t": t, "y": yt})
     df = df.assign(u=0)
-    pct40 = ((N * 4) // 10)
+    pct40 = (N * 4) // 10
 
-    xc = ['y']
-    uc = ['u']
+    xc = ["y"]
+    uc = ["u"]
 
     sc_cols = xc + uc
     scaled_df = df[sc_cols]
 
     scaler = MinMaxScaler()
 
-    scaled_df = pd.DataFrame(scaler.fit_transform(scaled_df),
-                             columns=sc_cols,
-                             index=df.index)
+    scaled_df = pd.DataFrame(
+        scaler.fit_transform(scaled_df), columns=sc_cols, index=df.index
+    )
 
     scaled_df = scaled_df.assign(uc=[0] * pct40 + [1] * (N - pct40))
     scaled_df = scaled_df.dropna()
     xlag = 2
-    X, y, groups = unroll_by_group(scaled_df,
-                                   group_column='uc',
-                                   x_columns=xc,
-                                   u_columns=uc,
-                                   xlag=xlag,
-                                   ulag=2)
+    X, y, groups = unroll_by_group(
+        scaled_df, group_column="uc", x_columns=xc, u_columns=uc, xlag=xlag, ulag=2
+    )
 
     X = X.to_numpy()
     y = y.to_numpy()
@@ -56,15 +53,17 @@ def test_mlsim():
     model = lr_model()
     _ = model.fit(xx, yy)
 
-    initial_state = df.loc[0:xlag - 1, xc].to_numpy()
+    initial_state = df.loc[0 : xlag - 1, xc].to_numpy()
 
-    sim = MLSim(model,
-                scaler=scaler,
-                initial_state=initial_state,
-                xlag=2,
-                ulag=2,
-                xlen=1,
-                ulen=1)
+    sim = MLSim(
+        model,
+        scaler=scaler,
+        initial_state=initial_state,
+        xlag=2,
+        ulag=2,
+        xlen=1,
+        ulen=1,
+    )
 
     t, s1 = sim.step([0])
 
@@ -90,23 +89,23 @@ def test_two_lags():
     for i in range(1, N):
         y[i] = -y[i - 1] + x[i] - 2 * x[i - 1]
 
-    df = pd.DataFrame({'y': y, 'x': x})
+    df = pd.DataFrame({"y": y, "x": x})
     print(df)
     scaler = MinMaxScaler()
-    sc_cols = ['y', 'x']
-    scaled_df = pd.DataFrame(scaler.fit_transform(df),
-                             columns=sc_cols,
-                             index=df.index)
+    sc_cols = ["y", "x"]
+    scaled_df = pd.DataFrame(scaler.fit_transform(df), columns=sc_cols, index=df.index)
     scaled_df = scaled_df.assign(uc=0)
     scaled_df = scaled_df.dropna()
     lag = 2
     print(scaled_df)
-    X, y, groups = unroll_by_group(scaled_df,
-                                   group_column='uc',
-                                   x_columns=['y'],
-                                   u_columns=['x'],
-                                   xlag=lag,
-                                   ulag=lag)
+    X, y, groups = unroll_by_group(
+        scaled_df,
+        group_column="uc",
+        x_columns=["y"],
+        u_columns=["x"],
+        xlag=lag,
+        ulag=lag,
+    )
     print(X)
     print(y)
     X, y = X.to_numpy(), y.to_numpy()
@@ -116,25 +115,27 @@ def test_two_lags():
 
     initial_state = df.y.iloc[:lag].to_numpy().reshape(lag, -1)
     prior_actions = df.x.iloc[1:lag].to_numpy().reshape(lag - 1, -1)
-    print(f'initial state {initial_state} and prior actions {prior_actions}')
-    sim = MLSim(model,
-                scaler,
-                initial_state,
-                xlag=lag,
-                ulag=lag,
-                xlen=1,
-                ulen=1,
-                prior_actions=prior_actions)
+    print(f"initial state {initial_state} and prior actions {prior_actions}")
+    sim = MLSim(
+        model,
+        scaler,
+        initial_state,
+        xlag=lag,
+        ulag=lag,
+        xlen=1,
+        ulen=1,
+        prior_actions=prior_actions,
+    )
 
-    u = df.x.to_numpy()[lag:lag + 1]
+    u = df.x.to_numpy()[lag : lag + 1]
     t, xt = sim.step(u)
-    print(f'sim.step({u}) -> {t}, {xt}')
+    print(f"sim.step({u}) -> {t}, {xt}")
     assert approx(xt[0]) == df.y.iloc[lag]
 
     for i in range(4):
-        u = df.x.to_numpy()[lag + i + 1:lag + i + 2]
+        u = df.x.to_numpy()[lag + i + 1 : lag + i + 2]
         t, xt = sim.step(u)
-        print(f'sim.step({u}) -> {t}, {xt}')
+        print(f"sim.step({u}) -> {t}, {xt}")
         assert approx(xt[0]) == df.y.iloc[lag + i + 1]
 
 
@@ -151,43 +152,37 @@ def test_one_lag():
     for i in range(1, N):
         y[i] = -2 * y[i - 1] + 3 * x[i]
 
-    df = pd.DataFrame({'y': y, 'x': x})
+    df = pd.DataFrame({"y": y, "x": x})
     scaler = MinMaxScaler()
-    sc_cols = ['y', 'x']
-    scaled_df = pd.DataFrame(scaler.fit_transform(df),
-                             columns=sc_cols,
-                             index=df.index)
+    sc_cols = ["y", "x"]
+    scaled_df = pd.DataFrame(scaler.fit_transform(df), columns=sc_cols, index=df.index)
     scaled_df = scaled_df.assign(uc=0)
     scaled_df = scaled_df.dropna()
     lag = 1
-    X, y, groups = unroll_by_group(scaled_df,
-                                   group_column='uc',
-                                   x_columns=['y'],
-                                   u_columns=['x'],
-                                   xlag=lag,
-                                   ulag=lag)
+    X, y, groups = unroll_by_group(
+        scaled_df,
+        group_column="uc",
+        x_columns=["y"],
+        u_columns=["x"],
+        xlag=lag,
+        ulag=lag,
+    )
     X, y = X.to_numpy(), y.to_numpy()
 
     model = lr_model()
     model.fit(X[groups == 0], y[groups == 0])
 
     initial_state = np.vstack(df.y.iloc[:lag])
-    sim = MLSim(model,
-                scaler,
-                initial_state,
-                xlag=lag,
-                ulag=lag,
-                xlen=1,
-                ulen=1)
+    sim = MLSim(model, scaler, initial_state, xlag=lag, ulag=lag, xlen=1, ulen=1)
 
     t, xt = sim.step(df.x.iloc[lag])
     assert xt.shape == (1,)
     assert approx(xt[0]) == df.y.iloc[lag]
 
     for i in range(4):
-        u = df.x.to_numpy()[lag + i + 1:lag + i + 2]
+        u = df.x.to_numpy()[lag + i + 1 : lag + i + 2]
         t, xt = sim.step(u)
-        print(f'sim.step({u}) -> {t}, {xt}')
+        print(f"sim.step({u}) -> {t}, {xt}")
         assert approx(xt[0]) == df.y.iloc[lag + i + 1]
 
 
@@ -199,36 +194,38 @@ def test_clip():
     for i in range(1, N):
         y[i] = -2 * y[i - 1] + 3 * x[i]
 
-    df = pd.DataFrame({'y': y, 'x': x})
+    df = pd.DataFrame({"y": y, "x": x})
     scaler = MinMaxScaler()
-    sc_cols = ['y', 'x']
-    scaled_df = pd.DataFrame(scaler.fit_transform(df),
-                             columns=sc_cols,
-                             index=df.index)
+    sc_cols = ["y", "x"]
+    scaled_df = pd.DataFrame(scaler.fit_transform(df), columns=sc_cols, index=df.index)
     scaled_df = scaled_df.assign(uc=0)
     scaled_df = scaled_df.dropna()
     lag = 1
-    X, y, groups = unroll_by_group(scaled_df,
-                                   group_column='uc',
-                                   x_columns=['y'],
-                                   u_columns=['x'],
-                                   xlag=lag,
-                                   ulag=lag)
+    X, y, groups = unroll_by_group(
+        scaled_df,
+        group_column="uc",
+        x_columns=["y"],
+        u_columns=["x"],
+        xlag=lag,
+        ulag=lag,
+    )
     X, y = X.to_numpy(), y.to_numpy()
 
     model = lr_model()
     model.fit(X[groups == 0], y[groups == 0])
 
     initial_state = np.array([[100]])
-    sim = MLSim(model,
-                scaler,
-                initial_state,
-                xlag=lag,
-                ulag=lag,
-                xlen=1,
-                ulen=1,
-                ut_min=np.array([0]),
-                ut_max=np.array([1]))
+    sim = MLSim(
+        model,
+        scaler,
+        initial_state,
+        xlag=lag,
+        ulag=lag,
+        xlen=1,
+        ulen=1,
+        ut_min=np.array([0]),
+        ut_max=np.array([1]),
+    )
 
     # try a value that is larger than ut max
     t, xt = sim.step(33)
