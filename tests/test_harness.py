@@ -14,7 +14,7 @@ May 27, 2021
 
 import pytest
 from sklearn.base import BaseEstimator
-from domus_mlsim.harness import (
+from domus_mlsim import (
     DV0Ut,
     DV0Xt,
     DV0_XT_COLUMNS,
@@ -39,10 +39,10 @@ from domus_mlsim.harness import (
     update_dv0_inputs,
     update_dv1_inputs,
     update_hvac_inputs,
+    SimpleHvac,
+    MLSim,
+    KELVIN,
 )
-from domus_mlsim.simple_hvac import SimpleHvac
-from domus_mlsim.mlsim import MLSim
-from domus_mlsim.cols import KELVIN
 import numpy as np
 from numpy.testing import assert_array_equal
 import joblib
