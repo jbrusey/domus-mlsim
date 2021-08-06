@@ -56,8 +56,7 @@ def test_mlsim():
     initial_state = df.loc[0 : xlag - 1, xc].to_numpy()
 
     sim = MLSim(
-        model,
-        scaler=scaler,
+        (scaler, model),
         initial_state=initial_state,
         xlag=2,
         ulag=2,
@@ -117,8 +116,7 @@ def test_two_lags():
     prior_actions = df.x.iloc[1:lag].to_numpy().reshape(lag - 1, -1)
     print(f"initial state {initial_state} and prior actions {prior_actions}")
     sim = MLSim(
-        model,
-        scaler,
+        (scaler, model),
         initial_state,
         xlag=lag,
         ulag=lag,
@@ -173,7 +171,7 @@ def test_one_lag():
     model.fit(X[groups == 0], y[groups == 0])
 
     initial_state = np.vstack(df.y.iloc[:lag])
-    sim = MLSim(model, scaler, initial_state, xlag=lag, ulag=lag, xlen=1, ulen=1)
+    sim = MLSim((scaler, model), initial_state, xlag=lag, ulag=lag, xlen=1, ulen=1)
 
     t, xt = sim.step(df.x.iloc[lag])
     assert xt.shape == (1,)
@@ -216,8 +214,7 @@ def test_clip():
 
     initial_state = np.array([[100]])
     sim = MLSim(
-        model,
-        scaler,
+        (scaler, model),
         initial_state,
         xlag=lag,
         ulag=lag,

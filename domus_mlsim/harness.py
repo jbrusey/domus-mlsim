@@ -18,6 +18,8 @@ number of timesteps under specific conditions.
 
 
 import numpy as np
+import pkg_resources
+import joblib
 
 from .simple_hvac import SimpleHvac
 from .cols import (
@@ -173,10 +175,30 @@ def update_dv1_inputs(b_u, h_x, c_x):
     )
 
 
-def make_dv0_sim(cabin_model, cabin_scaler, cabin_state):
+def load_dv0():
+    fname = pkg_resources.resource_filename(__name__, "model/3d_lr.joblib")
+    scaler_and_model = joblib.load(fname)
+
+    return scaler_and_model
+
+
+def load_dv1():
+    fname = pkg_resources.resource_filename(__name__, "model/dv1_lr.joblib")
+    scaler_and_model = joblib.load(fname)
+
+    return scaler_and_model
+
+
+def load_hvac():
+    fname = pkg_resources.resource_filename(__name__, "model/hvac_lr.joblib")
+    scaler_and_model = joblib.load(fname)
+
+    return scaler_and_model
+
+
+def make_dv0_sim(scaler_and_model, cabin_state):
     return MLSim(
-        cabin_model,
-        cabin_scaler,
+        scaler_and_model,
         initial_state=np.vstack([cabin_state] * 2),
         xlag=2,
         ulag=2,
@@ -187,10 +209,9 @@ def make_dv0_sim(cabin_model, cabin_scaler, cabin_state):
     )
 
 
-def make_dv1_sim(cabin_model, cabin_scaler, cabin_state):
+def make_dv1_sim(scaler_and_model, cabin_state):
     return MLSim(
-        cabin_model,
-        cabin_scaler,
+        scaler_and_model,
         initial_state=np.vstack([cabin_state]),
         xlag=1,
         ulag=1,
@@ -201,10 +222,9 @@ def make_dv1_sim(cabin_model, cabin_scaler, cabin_state):
     )
 
 
-def make_hvac_sim(hvac_model, hvac_scaler, hvac_state):
+def make_hvac_sim(scaler_and_model, hvac_state):
     return MLSim(
-        hvac_model,
-        hvac_scaler,
+        scaler_and_model,
         initial_state=np.vstack([hvac_state]),
         xlag=1,
         ulag=1,
@@ -216,10 +236,8 @@ def make_hvac_sim(hvac_model, hvac_scaler, hvac_state):
 
 
 def run_dv0_sim(
-    cabin_model,
-    cabin_scaler,
-    hvac_model,
-    hvac_scaler,
+    dv0_scaler_and_model,
+    hvac_scaler_and_model,
     controller,
     setpoint,
     n,
@@ -277,9 +295,9 @@ def run_dv0_sim(
         HVAC_XT_COLUMNS, cab_RH=cabin_rh, evp_mdot=cabin_v, vent_T=cabin_t
     )
 
-    cabin_mlsim = make_dv0_sim(cabin_model, cabin_scaler, b_x)
+    cabin_mlsim = make_dv0_sim(dv0_scaler_and_model, b_x)
 
-    hvac_mlsim = make_hvac_sim(hvac_model, hvac_scaler, h_x)
+    hvac_mlsim = make_hvac_sim(hvac_scaler_and_model, h_x)
 
     cabin = np.zeros((n, len(b_x)))
     cabin[0] = b_x
@@ -330,10 +348,8 @@ def run_dv0_sim(
 
 
 def run_dv1_sim(
-    cabin_model,
-    cabin_scaler,
-    hvac_model,
-    hvac_scaler,
+    dv1_scaler_and_model,
+    hvac_scaler_and_model,
     controller,
     setpoint,
     n,
@@ -392,9 +408,9 @@ def run_dv1_sim(
         HVAC_XT_COLUMNS, cab_RH=cabin_rh, evp_mdot=cabin_v, vent_T=cabin_t
     )
 
-    cabin_mlsim = make_dv1_sim(cabin_model, cabin_scaler, b_x)
+    cabin_mlsim = make_dv1_sim(dv1_scaler_and_model, b_x)
 
-    hvac_mlsim = make_hvac_sim(hvac_model, hvac_scaler, h_x)
+    hvac_mlsim = make_hvac_sim(hvac_scaler_and_model, h_x)
 
     cabin = np.zeros((n, len(b_x)))
     cabin[0] = b_x

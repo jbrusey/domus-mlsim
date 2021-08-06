@@ -12,38 +12,40 @@ May 27, 2021
 
 """
 
+import pytest
+from sklearn.base import BaseEstimator
 from domus_mlsim.harness import (
+    DV0Ut,
+    DV0Xt,
+    DV0_XT_COLUMNS,
+    DV1Ut,
+    DV1Xt,
+    DV1_XT_COLUMNS,
+    HVAC_XT_COLUMNS,
+    HvacUt,
+    HvacXt,
     estimate_cabin_temperature_dv0,
     estimate_cabin_temperature_dv1,
-    update_control_inputs_dv0,
-    update_control_inputs_dv1,
-    update_hvac_inputs,
-    update_dv0_inputs,
-    update_dv1_inputs,
+    load_dv0,
+    load_dv1,
+    load_hvac,
     make_dv0_sim,
     make_dv1_sim,
     make_hvac_sim,
     run_dv0_sim,
     run_dv1_sim,
-    DV0Xt,
-    DV0Ut,
-    DV0_XT_COLUMNS,
-    DV1Xt,
-    DV1Ut,
-    DV1_XT_COLUMNS,
-    HvacXt,
-    HvacUt,
-    HVAC_XT_COLUMNS,
+    update_control_inputs_dv0,
+    update_control_inputs_dv1,
+    update_dv0_inputs,
+    update_dv1_inputs,
+    update_hvac_inputs,
 )
 from domus_mlsim.simple_hvac import SimpleHvac
+from domus_mlsim.mlsim import MLSim
 from domus_mlsim.cols import KELVIN
 import numpy as np
 from numpy.testing import assert_array_equal
 import joblib
-
-from pathlib import Path
-
-ROOT = Path(".")
 
 
 def test_estimate_cabin_temperature_dv0():
@@ -204,53 +206,45 @@ def test_update_dv1_inputs():
     assert_array_equal(expect, b_u)
 
 
-def test_make_dv0_sim():
-    DV0_MODEL = ROOT / "model/3d_lr.joblib"
+@pytest.mark.parametrize(
+    "func",
+    [
+        load_dv0,
+        load_dv1,
+        load_hvac,
+    ],
+)
+def test_load(func):
+    scaler_and_model = func()
 
-    dv0_scaler, dv0_model = joblib.load(DV0_MODEL)
-
-    dv0_state = np.zeros((len(DV0_XT_COLUMNS)))
-
-    dv0_sim = make_dv0_sim(dv0_model, dv0_scaler, dv0_state)
-
-    assert dv0_sim is not None
-
-
-def test_make_dv1_sim():
-    DV1_MODEL = ROOT / "model/dv1_lr.joblib"
-
-    dv1_scaler, dv1_model = joblib.load(DV1_MODEL)
-
-    dv1_state = np.zeros((len(DV1_XT_COLUMNS)))
-
-    dv1_sim = make_dv1_sim(dv1_model, dv1_scaler, dv1_state)
-
-    assert dv1_sim is not None
+    assert (
+        scaler_and_model is not None
+        and len(scaler_and_model) == 2
+        and isinstance(scaler_and_model[0], BaseEstimator)
+    )
 
 
-def test_make_hvac_sim():
-    HVAC_MODEL = ROOT / "model/hvac_lr.joblib"
+@pytest.mark.parametrize(
+    "state_len,load_func,make_func",
+    [
+        (len(DV0_XT_COLUMNS), load_dv0, make_dv0_sim),
+        (len(DV1_XT_COLUMNS), load_dv1, make_dv1_sim),
+        (len(HVAC_XT_COLUMNS), load_hvac, make_hvac_sim),
+    ],
+)
+def test_make_sim(state_len, load_func, make_func):
 
-    hvac_scaler, hvac_model = joblib.load(HVAC_MODEL)
+    scaler_and_model = load_func()
+    state = np.zeros((state_len))
 
-    hvac_state = np.zeros((len(HVAC_XT_COLUMNS)))
-
-    hvac_sim = make_hvac_sim(hvac_model, hvac_scaler, hvac_state)
-
-    assert hvac_sim is not None
+    sim = make_func(scaler_and_model, state)
+    assert sim is not None and isinstance(sim, MLSim)
 
 
 def test_run_dv0_sim():
-    DV0_MODEL = ROOT / "model/3d_lr.joblib"
-    HVAC_MODEL = ROOT / "model/hvac_lr.joblib"
-    dv0_scaler, dv0_model = joblib.load(DV0_MODEL)
-    hvac_scaler, hvac_model = joblib.load(HVAC_MODEL)
-
     cabin, hvac, ctrl = run_dv0_sim(
-        dv0_model,
-        dv0_scaler,
-        hvac_model,
-        hvac_scaler,
+        load_dv0(),
+        load_hvac(),
         SimpleHvac(),
         setpoint=KELVIN + 22,
         n=100,
@@ -269,16 +263,9 @@ def test_run_dv0_sim():
 
 
 def test_run_dv1_sim():
-    DV1_MODEL = ROOT / "model/dv1_lr.joblib"
-    HVAC_MODEL = ROOT / "model/hvac_lr.joblib"
-    dv1_scaler, dv1_model = joblib.load(DV1_MODEL)
-    hvac_scaler, hvac_model = joblib.load(HVAC_MODEL)
-
     cabin, hvac, ctrl = run_dv1_sim(
-        dv1_model,
-        dv1_scaler,
-        hvac_model,
-        hvac_scaler,
+        load_dv1(),
+        load_hvac(),
         SimpleHvac(),
         setpoint=KELVIN + 22,
         n=100,
@@ -297,16 +284,9 @@ def test_run_dv1_sim():
 
 
 def test_run_dv1_sim_log():
-    DV1_MODEL = ROOT / "model/dv1_lr.joblib"
-    HVAC_MODEL = ROOT / "model/hvac_lr.joblib"
-    dv1_scaler, dv1_model = joblib.load(DV1_MODEL)
-    hvac_scaler, hvac_model = joblib.load(HVAC_MODEL)
-
     cabin, hvac, ctrl, b_u_log, h_u_log, c_u_log = run_dv1_sim(
-        dv1_model,
-        dv1_scaler,
-        hvac_model,
-        hvac_scaler,
+        load_dv1(),
+        load_hvac(),
         SimpleHvac(),
         setpoint=KELVIN + 22,
         n=100,

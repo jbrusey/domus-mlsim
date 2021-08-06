@@ -1,7 +1,13 @@
 from setuptools import setup
 
+from pathlib import Path
+
+model_root = Path("domus_mlsim/model")
+model_files = [str(p) for p in model_root.glob("*lr.joblib")]
+
 setup(
     name="domus_mlsim",
     version="0.1",
     install_requires=["simple-pid", "numpy", "pandas", "scikit-learn==0.23.2"],
+    data_files=[("model", model_files)],
 )

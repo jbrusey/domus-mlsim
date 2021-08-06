@@ -34,8 +34,7 @@ class MLSim:
 
     def __init__(
         self,
-        model,
-        scaler,
+        scaler_and_model,
         initial_state,
         xlag,
         ulag,
@@ -51,13 +50,11 @@ class MLSim:
 
         Parameters
         ----------
-        model : object
+        scaler_and_model : tuple
 
-          model object with predict function
-
-        scaler : object
-
-          sklearn scaler object used with model to scale x, u vector
+          tuple containing scaler and model. The scaler transforms the
+          combined x, u vector, while model provides a single step
+          simulator for scaled values.
 
         initial_state : array-like
 
@@ -107,7 +104,7 @@ class MLSim:
           action array maximum values (used for clipping)
 
         """
-        self.model = model
+        scaler, self.model = scaler_and_model
         self.xt = initial_state
         assert initial_state.shape == (xlag, xlen)
         self.xlag = xlag
