@@ -39,3 +39,4 @@ from .cols import (
 )
 from .mlsim import MLSim
 from .util import kw_to_array
+from .hcm import binary_comfort, eqt, load_model, hcm_reduced

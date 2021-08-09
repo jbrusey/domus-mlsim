@@ -45,7 +45,6 @@ from domus_mlsim import (
 )
 import numpy as np
 from numpy.testing import assert_array_equal
-import joblib
 
 
 def test_estimate_cabin_temperature_dv0():

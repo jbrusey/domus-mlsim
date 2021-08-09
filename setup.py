@@ -3,7 +3,10 @@ from setuptools import setup
 from pathlib import Path
 
 model_root = Path("domus_mlsim/model")
-model_files = [str(p) for p in model_root.glob("*lr.joblib")]
+model_files = [
+    str(p)
+    for p in list(model_root.glob("*lr.joblib")) + list(model_root.glob("*.pickle"))
+]
 
 setup(
     name="domus_mlsim",
