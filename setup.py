@@ -5,7 +5,9 @@ from pathlib import Path
 model_root = Path("domus_mlsim/model")
 model_files = [
     str(p)
-    for p in list(model_root.glob("*lr.joblib")) + list(model_root.glob("*.pickle"))
+    for p in list(model_root.glob("*lr.joblib"))
+    + list(model_root.glob("*.pickle"))
+    + list(model_root.glob("scenarios.csv"))
 ]
 
 setup(
