@@ -10,7 +10,7 @@ import pickle
 import pkg_resources
 
 
-def _load_model():
+def _load_hcm_model():
     """load pickle files needed for LDA"""
     return [
         pickle.load(
@@ -20,12 +20,12 @@ def _load_model():
     ]
 
 
-def load_model():
+def load_hcm_model():
     """due to a change in 0.23 onward, we now need to set the number of
     features expected for the estimator as this was not done when the model was fitted."""
 
     n_features = [45, 45, 24, 24]
-    mdl = _load_model()
+    mdl = _load_hcm_model()
     for n, m in zip(n_features, mdl):
         m.n_features_in_ = n
 
@@ -42,6 +42,12 @@ def local_eqt(ta, tr, va, pre_clo):
     @param pre_clo - clothing insulation level
 
     """
+    assert (
+        -30 < ta < 100
+    ), f"out of range air temperature ({ta}) - did you pass in kelvin?"
+    assert (
+        -30 < tr < 100
+    ), f"out of range radiant temperature ({tr}) - did you pass in kelvin?"
     if va <= 0.1:
         return 0.5 * (ta + tr)
     else:
@@ -265,7 +271,7 @@ def hcm_reduced(
 
     @param qa_wt - weight of cabin occupant (kg)
 
-    @param rh - relative humidity (m/s)
+    @param rh - relative humidity (%)
 
     @param co2ppm - carbon dioxide concentration (ppm)
 

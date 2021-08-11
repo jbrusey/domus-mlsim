@@ -38,5 +38,6 @@ from .cols import (
     DV1_UT_MAX,
 )
 from .mlsim import MLSim
+from .scenario import load_scenarios
 from .util import kw_to_array
-from .hcm import binary_comfort, eqt, load_model, hcm_reduced
+from .hcm import binary_comfort, eqt, load_hcm_model, hcm_reduced

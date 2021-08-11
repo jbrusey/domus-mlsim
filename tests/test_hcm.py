@@ -1,7 +1,7 @@
 import numpy as np
 from pytest import approx
 
-from domus_mlsim import binary_comfort, eqt, load_model, hcm_reduced
+from domus_mlsim import binary_comfort, eqt, load_hcm_model, hcm_reduced
 
 
 def test_eqt():
@@ -170,7 +170,7 @@ def test_binary_comfort_eg1():
         threshold_red,
         HCMout,
         HCMout_red,
-    ) = binary_comfort(input_vars, input_vars_red, eqt_out, model=load_model())
+    ) = binary_comfort(input_vars, input_vars_red, eqt_out, model=load_hcm_model())
 
     assert HCMout == 2, "occupant should be comfortable for this example"
 
@@ -326,7 +326,7 @@ def test_binary_comfort_eg2():
         threshold_red,
         HCMout,
         HCMout_red,
-    ) = binary_comfort(input_vars, input_vars_red, eqt_out, model=load_model())
+    ) = binary_comfort(input_vars, input_vars_red, eqt_out, model=load_hcm_model())
 
     assert HCMout == 1, "occupant should be uncomfortable for this example"
 
@@ -482,7 +482,7 @@ def test_binary_comfort_eg3():
         threshold_red,
         HCMout,
         HCMout_red,
-    ) = binary_comfort(input_vars, input_vars_red, eqt_out, model=load_model())
+    ) = binary_comfort(input_vars, input_vars_red, eqt_out, model=load_hcm_model())
 
     assert HCMout == 1, "occupant should be uncomfortable for this example"
 
@@ -525,7 +525,7 @@ def test_hcm_reduced1():
         [[ta_hd, tr_hd, va_hd], [ta_tr, tr_tr, va_tr], [ta_ft, tr_ft, va_ft]]
     )
 
-    _, _, ldamdl, scale = load_model()
+    _, _, ldamdl, scale = load_hcm_model()
 
     assert hcm_reduced(
         model=(ldamdl, scale),
@@ -568,7 +568,7 @@ def test_hcm_reduced2():
         [[ta_hd, tr_hd, va_hd], [ta_tr, tr_tr, va_tr], [ta_ft, tr_ft, va_ft]]
     )
 
-    _, _, ldamdl, scale = load_model()
+    _, _, ldamdl, scale = load_hcm_model()
 
     assert not hcm_reduced(
         model=(ldamdl, scale),
@@ -611,7 +611,7 @@ def test_hcm_reduced3():
         [[ta_hd, tr_hd, va_hd], [ta_tr, tr_tr, va_tr], [ta_ft, tr_ft, va_ft]]
     )
 
-    _, _, ldamdl, scale = load_model()
+    _, _, ldamdl, scale = load_hcm_model()
 
     assert not hcm_reduced(
         model=(ldamdl, scale),
