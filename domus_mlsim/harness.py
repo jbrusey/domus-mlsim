@@ -60,6 +60,12 @@ def estimate_cabin_temperature_dv0(b_x):
                 DV0Xt.t_psgr1,
                 DV0Xt.t_psgr2,
                 DV0Xt.t_psgr3,
+                DV0Xt.m_drvr1,
+                DV0Xt.m_drvr2,
+                DV0Xt.m_drvr3,
+                DV0Xt.m_psgr1,
+                DV0Xt.m_psgr2,
+                DV0Xt.m_psgr3,
             ]
         ]
     )
@@ -79,6 +85,12 @@ def estimate_cabin_temperature_dv1(b_x):
                 DV1Xt.t_psgr1,
                 DV1Xt.t_psgr2,
                 DV1Xt.t_psgr3,
+                DV1Xt.m_drvr1,
+                DV1Xt.m_drvr2,
+                DV1Xt.m_drvr3,
+                DV1Xt.m_psgr1,
+                DV1Xt.m_psgr2,
+                DV1Xt.m_psgr3,
             ]
         ]
     )

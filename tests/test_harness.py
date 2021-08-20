@@ -61,8 +61,14 @@ def test_estimate_cabin_temperature_dv0():
             DV0Xt.t_psgr1,
             DV0Xt.t_psgr2,
             DV0Xt.t_psgr3,
+            DV0Xt.m_drvr1,
+            DV0Xt.m_drvr2,
+            DV0Xt.m_drvr3,
+            DV0Xt.m_psgr1,
+            DV0Xt.m_psgr2,
+            DV0Xt.m_psgr3,
         ]
-    ] = [[1, 2, 3, 4, 5, 6]]
+    ] = [[1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6]]
     assert estimate_cabin_temperature_dv0(b_x) == 3.5
 
 
@@ -80,8 +86,14 @@ def test_estimate_cabin_temperature_dv1():
             DV1Xt.t_psgr1,
             DV1Xt.t_psgr2,
             DV1Xt.t_psgr3,
+            DV0Xt.m_drvr1,
+            DV0Xt.m_drvr2,
+            DV0Xt.m_drvr3,
+            DV0Xt.m_psgr1,
+            DV0Xt.m_psgr2,
+            DV0Xt.m_psgr3,
         ]
-    ] = [[1, 2, 3, 4, 5, 6]]
+    ] = [[1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6]]
     assert estimate_cabin_temperature_dv1(b_x) == 3.5
 
 
