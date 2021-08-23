@@ -3,6 +3,8 @@
 * Introduction
 This is an interface to machine learned simulators written in Python developed as part of the H2020 EU DOMUS project http://domus-project.eu 
 
+* Example
+To see how to use the simulator, go to the [[https://github.com/jbrusey/domus_mlsim/blob/main/example.ipynb][example]]. 
 * Installation
 ** Installing using pip
 I recommend installing in a virtualenv or using Anaconda. You'll need to set-up and switch to the virtualenv first and then install using:
