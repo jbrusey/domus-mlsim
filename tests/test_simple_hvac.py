@@ -12,7 +12,7 @@ May 6, 2021
 
 """
 
-from domus_mlsim.simple_hvac import SimpleHvac, KELVIN
+from domus_mlsim.simple_hvac import KELVIN, SimpleHvac
 from domus_mlsim.util import kw_to_array
 
 # from pytest import approx

@@ -18,6 +18,7 @@ MLSim class that packages up a machine learnt model and scaler.
 
 
 import numpy as np
+
 from .partial_scaler import PartialScaler
 
 

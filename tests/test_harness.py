@@ -12,18 +12,24 @@ May 27, 2021
 
 """
 
+import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 from sklearn.base import BaseEstimator
+
 from domus_mlsim import (
-    DV0Ut,
-    DV0Xt,
     DV0_XT_COLUMNS,
-    DV1Ut,
-    DV1Xt,
     DV1_XT_COLUMNS,
     HVAC_XT_COLUMNS,
+    KELVIN,
+    DV0Ut,
+    DV0Xt,
+    DV1Ut,
+    DV1Xt,
     HvacUt,
     HvacXt,
+    MLSim,
+    SimpleHvac,
     estimate_cabin_temperature_dv0,
     estimate_cabin_temperature_dv1,
     load_dv0,
@@ -39,12 +45,7 @@ from domus_mlsim import (
     update_dv0_inputs,
     update_dv1_inputs,
     update_hvac_inputs,
-    SimpleHvac,
-    MLSim,
-    KELVIN,
 )
-import numpy as np
-from numpy.testing import assert_array_equal
 
 
 def test_estimate_cabin_temperature_dv0():

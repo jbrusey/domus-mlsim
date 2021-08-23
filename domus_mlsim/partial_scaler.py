@@ -12,8 +12,8 @@ vector into two separate x and u vectors.
 
 """
 
-from sklearn.base import BaseEstimator, TransformerMixin
 import numpy as np
+from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class PartialScaler(TransformerMixin, BaseEstimator):

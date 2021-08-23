@@ -4,8 +4,8 @@ process CWT data into a form suitable for machine learning.
 J. Brusey
 """
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def df_to_xy(df, x_columns, u_columns, xlag=None, ulag=None):

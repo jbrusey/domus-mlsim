@@ -5,8 +5,9 @@ DOMUS Holistic Comfort Model
 @author J Brusey
 """
 
-import numpy as np
 import pickle
+
+import numpy as np
 import pkg_resources
 
 

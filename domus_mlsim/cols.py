@@ -14,6 +14,7 @@ Column definitions for models
 """
 
 from enum import IntEnum
+
 from .util import kw_to_array
 
 KELVIN = 273.15

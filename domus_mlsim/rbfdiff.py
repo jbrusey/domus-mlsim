@@ -9,16 +9,15 @@ James Brusey
 
 """
 
-import numpy as np
-from scipy.special import binom, factorial
-from sklearn.cluster import KMeans
-from scipy.spatial import KDTree
 import sys
 
-from sklearn.metrics import mean_squared_error as MSE
+import numpy as np
+from scipy.spatial import KDTree
+from scipy.special import binom, factorial
+from sklearn.base import BaseEstimator, RegressorMixin
+from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression as LR
-
-from sklearn.base import RegressorMixin, BaseEstimator
+from sklearn.metrics import mean_squared_error as MSE
 
 sys.setrecursionlimit(10 ** 6)
 

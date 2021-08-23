@@ -9,15 +9,15 @@ Revised version of base MISO style regressor that supports MIMO (multiple column
 
 """
 
-import numpy as np
-from scipy.special import factorial
 import sys
 
-from sklearn.metrics import mean_squared_error as MSE
+import numpy as np
+from scipy.special import factorial
+from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.linear_model import LinearRegression as LR
+from sklearn.metrics import mean_squared_error as MSE
 
-from sklearn.base import RegressorMixin, BaseEstimator
-from .rbfdiff import rbf, variableBetas, rbfderivatives
+from .rbfdiff import rbf, rbfderivatives, variableBetas
 
 sys.setrecursionlimit(10 ** 6)
 

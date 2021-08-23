@@ -18,9 +18,11 @@ the windshield temperature.
 
 """
 
+from enum import IntEnum
+
 import numpy as np
 from simple_pid import PID
-from enum import IntEnum
+
 from .cols import KELVIN
 
 MAXTEMP = 999

@@ -1,6 +1,6 @@
-from setuptools import setup
-
 from pathlib import Path
+
+from setuptools import setup
 
 model_root = Path("domus_mlsim/model")
 model_files = [

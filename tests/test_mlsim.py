@@ -1,10 +1,11 @@
-from domus_mlsim.mlsim import MLSim
-from ux_transform import unroll_by_group
 import numpy as np
 import pandas as pd
 from pytest import approx
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import MinMaxScaler
+from ux_transform import unroll_by_group
+
+from domus_mlsim.mlsim import MLSim
 
 
 def lr_model():

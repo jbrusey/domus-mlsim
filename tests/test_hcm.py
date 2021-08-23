@@ -1,7 +1,7 @@
 import numpy as np
 from pytest import approx
 
-from domus_mlsim import binary_comfort, eqt, load_hcm_model, hcm_reduced
+from domus_mlsim import binary_comfort, eqt, hcm_reduced, load_hcm_model
 
 
 def test_eqt():
