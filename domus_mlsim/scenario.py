@@ -19,6 +19,4 @@ import pkg_resources
 
 
 def load_scenarios():
-    return pd.read_csv(
-        pkg_resources.resource_filename(__name__, f"model/scenarios.csv")
-    )
+    return pd.read_csv(pkg_resources.resource_filename(__name__, "model/scenarios.csv"))
