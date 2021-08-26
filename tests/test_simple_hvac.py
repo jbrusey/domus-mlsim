@@ -203,6 +203,7 @@ def test_demist():
         )
     )
     assert x[SimpleHvac.Xt.window_heating] == 0.0
+    assert x[SimpleHvac.Xt.dist_defrost] == 0.0
 
     x = control.step(
         kw_to_array(
@@ -215,13 +216,14 @@ def test_demist():
         )
     )
     assert x[SimpleHvac.Xt.window_heating] == 1.0
+    assert x[SimpleHvac.Xt.dist_defrost] == 1.0
 
 
 def test_recirc():
     control = SimpleHvac(dt=10)
 
     clock = 0
-    for i in range(120):
+    for _ in range(120):
         x = control.step(
             kw_to_array(
                 SimpleHvac.UT_COLUMNS,

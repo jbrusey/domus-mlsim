@@ -70,6 +70,7 @@ class SimpleHvac:
             "fan_power",
             "recirc",
             "window_heating",
+            "dist_defrost",
         ],
         start=0,
     )
@@ -236,6 +237,8 @@ class SimpleHvac:
         self.state[self.Xt.window_heating] = int(
             action[self.Ut.window_temperature] - tdp < 2
         )
+        # if window heating is needed, set defrost also
+        self.state[self.Xt.dist_defrost] = self.state[self.Xt.window_heating]
 
     def update_recirc(self, action):
         if self.state[self.Xt.recirc]:

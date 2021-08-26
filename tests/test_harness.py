@@ -135,8 +135,9 @@ def test_update_hvac_inputs():
             SimpleHvac.Xt.heater_power,
             SimpleHvac.Xt.fan_power,
             SimpleHvac.Xt.recirc,
+            SimpleHvac.Xt.dist_defrost,
         ]
-    ] = [400, 3000, 6000, 200, 0.5]
+    ] = [400, 3000, 6000, 200, 0.5, 0.6]
     update_hvac_inputs(h_u, c_x, 286)
 
     expect = np.zeros((len(HvacUt)))
@@ -162,8 +163,9 @@ def test_update_dv0_inputs():
     c_x[
         [
             SimpleHvac.Xt.recirc,
+            SimpleHvac.Xt.dist_defrost,
         ]
-    ] = [0.5]
+    ] = [0.5, 0.6]
     h_x[
         [
             HvacXt.vent_T,
@@ -179,8 +181,9 @@ def test_update_dv0_inputs():
             DV0Ut.t_HVACMain,
             DV0Ut.v_HVACMain,
             DV0Ut.recirc,
+            DV0Ut.dist_defrost,
         ]
-    ] = [273, 180, 0.5]
+    ] = [273, 180, 0.5, 0.6]
 
     assert_array_equal(expect, b_u)
 
@@ -191,8 +194,13 @@ def test_update_dv1_inputs():
     b_u = np.zeros((len(DV1Ut)))
 
     c_x[
-        [SimpleHvac.Xt.recirc, SimpleHvac.Xt.blower_level, SimpleHvac.Xt.window_heating]
-    ] = [0.5, 264, 1.0]
+        [
+            SimpleHvac.Xt.recirc,
+            SimpleHvac.Xt.blower_level,
+            SimpleHvac.Xt.window_heating,
+            SimpleHvac.Xt.dist_defrost,
+        ]
+    ] = [0.5, 264, 1.0, 0.6]
     h_x[
         [
             HvacXt.vent_T,
@@ -208,12 +216,13 @@ def test_update_dv1_inputs():
             DV1Ut.HvacMain,
             DV1Ut.vent_flow_rate,
             DV1Ut.recirc,
+            DV1Ut.dist_defrost,
             DV1Ut.window_heating,
             DV1Ut.smart_vent_diffuse_low,
             DV1Ut.new_air_mode_Floor_SO_Defrost,
             DV1Ut.seat_off,
         ]
-    ] = [273, 3, 0.5, 1.0, 1, 1, 1]
+    ] = [273, 3, 0.5, 0.6, 1.0, 1, 1, 1]
 
     assert_array_equal(expect, b_u)
 

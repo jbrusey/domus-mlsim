@@ -154,7 +154,9 @@ def update_dv0_inputs(b_u, h_x, c_x):
         ]
     ]
 
-    b_u[DV0Ut.recirc] = c_x[SimpleHvac.Xt.recirc]
+    b_u[[DV0Ut.recirc, DV0Ut.dist_defrost]] = c_x[
+        [SimpleHvac.Xt.recirc, SimpleHvac.Xt.dist_defrost]
+    ]
 
 
 def update_dv1_inputs(b_u, h_x, c_x):
@@ -173,12 +175,9 @@ def update_dv1_inputs(b_u, h_x, c_x):
         ]
     ]
 
-    b_u[
-        [
-            DV1Ut.recirc,
-            DV1Ut.window_heating,
-        ]
-    ] = c_x[[SimpleHvac.Xt.recirc, SimpleHvac.Xt.window_heating]]
+    b_u[[DV1Ut.recirc, DV1Ut.window_heating, DV1Ut.dist_defrost]] = c_x[
+        [SimpleHvac.Xt.recirc, SimpleHvac.Xt.window_heating, SimpleHvac.Xt.dist_defrost]
+    ]
     # simplification to get dv1 working
     b_u[DV1Ut.vent_flow_rate] = np.interp(
         c_x[SimpleHvac.Xt.blower_level],
