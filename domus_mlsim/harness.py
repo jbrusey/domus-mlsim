@@ -163,11 +163,10 @@ def update_dv1_inputs(b_u, h_x, c_x):
     """update dv1 input vector b_u based on hvac state h_x and control state c_x."""
     b_u[
         [
-            DV1Ut.smart_vent_diffuse_low,
             DV1Ut.new_air_mode_Floor_SO_Defrost,
             DV1Ut.seat_off,
         ]
-    ] = [1, 1, 1]
+    ] = [1, 1]
 
     b_u[[DV1Ut.HvacMain,]] = h_x[
         [

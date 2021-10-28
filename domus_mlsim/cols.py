@@ -118,7 +118,6 @@ DV1_UT_COLUMNS = sorted(
         "radiant_panel_4",
         "seat_off",
         "seat_ventilate",
-        "smart_vent_diffuse_low",
         "window_heating",
     ]
 )
@@ -256,7 +255,6 @@ DV1_UT_MIN = kw_to_array(
     radiant_panel_4=0,
     seat_off=0,
     seat_ventilate=0,
-    smart_vent_diffuse_low=0,
     window_heating=0,
 )
 
@@ -287,7 +285,6 @@ DV1_UT_MAX = kw_to_array(
     radiant_panel_4=1,
     seat_off=1,
     seat_ventilate=1,
-    smart_vent_diffuse_low=1,
     window_heating=1,
 )
 

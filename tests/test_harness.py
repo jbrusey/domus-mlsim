@@ -218,11 +218,10 @@ def test_update_dv1_inputs():
             DV1Ut.recirc,
             DV1Ut.dist_defrost,
             DV1Ut.window_heating,
-            DV1Ut.smart_vent_diffuse_low,
             DV1Ut.new_air_mode_Floor_SO_Defrost,
             DV1Ut.seat_off,
         ]
-    ] = [273, 3, 0.5, 0.6, 1.0, 1, 1, 1]
+    ] = [273, 3, 0.5, 0.6, 1.0, 1, 1]
 
     assert_array_equal(expect, b_u)
 
