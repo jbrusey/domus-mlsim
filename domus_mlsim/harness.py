@@ -259,6 +259,7 @@ def run_dv0_sim(
     solar1,
     solar2,
     car_speed,
+    log_inputs=False,
 ):
     b_x = kw_to_array(
         DV0_XT_COLUMNS,
@@ -333,6 +334,10 @@ def run_dv0_sim(
             DV0Ut.VehicleSpeed,
         ]
     ] = [ambient_t, ambient_rh, solar1, solar2, car_speed / 100 * 27.778]
+    if log_inputs:
+        b_u_log = np.zeros((n, len(b_u)))
+        h_u_log = np.zeros((n, len(h_u)))
+        c_u_log = np.zeros((n, len(c_u)))
     for i in range(n):
         # average temperature over front bench
         cab_t = estimate_cabin_temperature_dv0(b_x)
@@ -353,8 +358,15 @@ def run_dv0_sim(
         cabin[i] = b_x
         hvac[i] = h_x
         ctrl[i] = c_x
+        if log_inputs:
+            b_u_log[i] = b_u
+            h_u_log[i] = h_u
+            c_u_log[i] = c_u
 
-    return cabin, hvac, ctrl
+    if log_inputs:
+        return cabin, hvac, ctrl, b_u_log, h_u_log, c_u_log
+    else:
+        return cabin, hvac, ctrl
 
 
 def run_dv1_sim(
