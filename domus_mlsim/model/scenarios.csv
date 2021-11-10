@@ -31,3 +31,4 @@ scenario,ambient_t,ambient_rh,cabin_t,cabin_rh,cabin_v,solar1,solar2,car_speed,p
 29,272.15,0.99,272.15,0.99,0,0,0,0,TRUE,TRUE,TRUE,0.55,10,4,0
 30,263.15,0.6,263.15,0.5,0,0,0,50,FALSE,FALSE,FALSE,0.7,15,1,0
 31,287.15,0.6,287.15,0.5,0,0,0,50,FALSE,FALSE,FALSE,0.7,15,1,0
+32,308.15,0.6,308.15,0.5,0,0,0,50,FALSE,FALSE,FALSE,0.7,15,1,0
