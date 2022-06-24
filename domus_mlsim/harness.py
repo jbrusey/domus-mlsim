@@ -180,8 +180,8 @@ def update_dv1_inputs(b_u, h_x, c_x):
     # simplification to get dv1 working
     b_u[DV1Ut.vent_flow_rate] = np.interp(
         c_x[SimpleHvac.Xt.blower_level],
-        np.array([5, 10, 18]) * 17 + 94,
-        np.array([1, 3, 5]),
+        np.array([5, 10, 18], dtype=np.float32) * 17 + 94,
+        np.array([1, 3, 5], dtype=np.float32),
     )
 
 
@@ -310,21 +310,21 @@ def run_dv0_sim(
 
     hvac_mlsim = make_hvac_sim(hvac_scaler_and_model, h_x)
 
-    cabin = np.zeros((n, len(b_x)))
+    cabin = np.zeros((n, len(b_x)), dtype=np.float32)
     cabin[0] = b_x
-    hvac = np.zeros((n, len(h_x)))
+    hvac = np.zeros((n, len(h_x)), dtype=np.float32)
     hvac[0] = h_x
-    ctrl = np.zeros((n, len(SimpleHvac.Xt)))
-    c_u = np.zeros((len(controller.Ut)))
+    ctrl = np.zeros((n, len(SimpleHvac.Xt)), dtype=np.float32)
+    c_u = np.zeros((len(controller.Ut)), dtype=np.float32)
     c_u[controller.Ut.setpoint] = setpoint
-    h_u = np.zeros((len(HvacUt)))
+    h_u = np.zeros((len(HvacUt)), dtype=np.float32)
     h_u[[HvacUt.ambient, HvacUt.humidity, HvacUt.solar, HvacUt.speed]] = [
         ambient_t,
         ambient_rh,
         solar1,
         car_speed,
     ]
-    b_u = np.zeros((len(DV0Ut)))
+    b_u = np.zeros((len(DV0Ut)), dtype=np.float32)
     b_u[
         [
             DV0Ut.t_a,
@@ -335,9 +335,9 @@ def run_dv0_sim(
         ]
     ] = [ambient_t, ambient_rh, solar1, solar2, car_speed / 100 * 27.778]
     if log_inputs:
-        b_u_log = np.zeros((n, len(b_u)))
-        h_u_log = np.zeros((n, len(h_u)))
-        c_u_log = np.zeros((n, len(c_u)))
+        b_u_log = np.zeros((n, len(b_u)), dtype=np.float32)
+        h_u_log = np.zeros((n, len(h_u)), dtype=np.float32)
+        c_u_log = np.zeros((n, len(c_u)), dtype=np.float32)
     for i in range(n):
         # average temperature over front bench
         cab_t = estimate_cabin_temperature_dv0(b_x)
@@ -434,21 +434,21 @@ def run_dv1_sim(
 
     hvac_mlsim = make_hvac_sim(hvac_scaler_and_model, h_x)
 
-    cabin = np.zeros((n, len(b_x)))
+    cabin = np.zeros((n, len(b_x)), dtype=np.float32)
     cabin[0] = b_x
-    hvac = np.zeros((n, len(h_x)))
+    hvac = np.zeros((n, len(h_x)), dtype=np.float32)
     hvac[0] = h_x
-    ctrl = np.zeros((n, len(SimpleHvac.Xt)))
-    c_u = np.zeros((len(controller.Ut)))
+    ctrl = np.zeros((n, len(SimpleHvac.Xt)), dtype=np.float32)
+    c_u = np.zeros((len(controller.Ut)), dtype=np.float32)
     c_u[controller.Ut.setpoint] = setpoint
-    h_u = np.zeros((len(HvacUt)))
+    h_u = np.zeros((len(HvacUt)), dtype=np.float32)
     h_u[[HvacUt.ambient, HvacUt.humidity, HvacUt.solar, HvacUt.speed]] = [
         ambient_t,
         ambient_rh,
         solar1,
         car_speed,
     ]
-    b_u = np.zeros((len(DV1Ut)))
+    b_u = np.zeros((len(DV1Ut)), dtype=np.float32)
     b_u[
         [
             DV1Ut.t_a,
@@ -460,9 +460,9 @@ def run_dv1_sim(
     ] = [ambient_t, ambient_rh, solar1, solar2, car_speed / 100 * 27.778]
 
     if log_inputs:
-        b_u_log = np.zeros((n, len(b_u)))
-        h_u_log = np.zeros((n, len(h_u)))
-        c_u_log = np.zeros((n, len(c_u)))
+        b_u_log = np.zeros((n, len(b_u)), dtype=np.float32)
+        h_u_log = np.zeros((n, len(h_u)), dtype=np.float32)
+        c_u_log = np.zeros((n, len(c_u)), dtype=np.float32)
     for i in range(n):
         # average temperature over front bench
         cab_t = estimate_cabin_temperature_dv1(b_x)

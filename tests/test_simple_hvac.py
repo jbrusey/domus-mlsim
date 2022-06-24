@@ -12,6 +12,7 @@ May 6, 2021
 
 """
 
+import numpy as np
 from domus_mlsim.simple_hvac import KELVIN, SimpleHvac
 from domus_mlsim.util import kw_to_array
 
@@ -33,6 +34,8 @@ def test_blower_level():
             vent_temperature=22 - 18 + KELVIN,
         )
     )
+    # also check if the data type is float32 for control output
+    assert x.dtype == np.float32
     assert x[SimpleHvac.Xt.blower_level] == 18 * 17 + 94
 
     # cabin -5

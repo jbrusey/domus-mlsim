@@ -14,7 +14,7 @@ May 27, 2021
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_max_ulp
 from sklearn.base import BaseEstimator
 
 from domus_mlsim import (
@@ -125,7 +125,7 @@ def test_update_control_inputs_dv1():
 
 
 def test_update_hvac_inputs():
-    c_x = np.zeros((len(SimpleHvac.Xt)))
+    c_x = np.zeros((len(SimpleHvac.Xt)), dtype=np.float32)
     h_u = np.zeros((len(HvacUt)))
 
     c_x[
@@ -156,7 +156,7 @@ def test_update_hvac_inputs():
 
 
 def test_update_dv0_inputs():
-    c_x = np.zeros((len(SimpleHvac.Xt)))
+    c_x = np.zeros((len(SimpleHvac.Xt)), dtype=np.float32)
     h_x = np.zeros((len(HvacXt)))
     b_u = np.zeros((len(DV0Ut)))
 
@@ -185,11 +185,11 @@ def test_update_dv0_inputs():
         ]
     ] = [273, 180, 0.5, 0.6]
 
-    assert_array_equal(expect, b_u)
+    assert_array_max_ulp(expect, b_u, dtype=np.float32)
 
 
 def test_update_dv1_inputs():
-    c_x = np.zeros((len(SimpleHvac.Xt)))
+    c_x = np.zeros((len(SimpleHvac.Xt)), dtype=np.float32)
     h_x = np.zeros((len(HvacXt)))
     b_u = np.zeros((len(DV1Ut)))
 
@@ -223,7 +223,7 @@ def test_update_dv1_inputs():
         ]
     ] = [273, 3, 0.5, 0.6, 1.0, 1, 1]
 
-    assert_array_equal(expect, b_u)
+    assert_array_max_ulp(expect, b_u, dtype=np.float32)
 
 
 @pytest.mark.parametrize(
@@ -277,6 +277,7 @@ def test_run_dv0_sim():
         solar2=50,
         car_speed=100,
     )
+    assert ctrl.dtype == np.float32
 
     # temperature should increase
     assert cabin[50, DV0Xt.t_drvr1] > cabin[0, DV0Xt.t_drvr1]
@@ -298,6 +299,7 @@ def test_run_dv1_sim():
         solar2=50,
         car_speed=100,
     )
+    assert ctrl.dtype == np.float32
 
     # temperature should increase
     assert cabin[50, DV1Xt.t_drvr1] > cabin[0, DV1Xt.t_drvr1]

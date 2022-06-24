@@ -142,7 +142,7 @@ class MLSim:
         (time, state vector at end of time step)
 
         """
-        ut = np.array(ut).reshape(1, -1)
+        ut = np.array(ut, dtype=np.float32).reshape(1, -1)
         if self.ut_min is not None and self.ut_max is not None:
             ut = np.clip(ut, self.ut_min, self.ut_max)
         ut = self.u_scaler.transform(ut)

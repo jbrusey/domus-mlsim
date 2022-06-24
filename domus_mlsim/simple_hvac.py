@@ -78,8 +78,12 @@ class SimpleHvac:
     UT_COLUMNS = [x.name for x in Ut]
     XT_COLUMNS = [x.name for x in Xt]
 
-    UT_MIN = np.array([0, -20 + KELVIN, 15 + KELVIN, 0 + KELVIN, -20 + KELVIN])
-    UT_MAX = np.array([1, 80 + KELVIN, 30 + KELVIN, 70 + KELVIN, 60 + KELVIN])
+    UT_MIN = np.array(
+        [0, -20 + KELVIN, 15 + KELVIN, 0 + KELVIN, -20 + KELVIN], dtype=np.float32
+    )
+    UT_MAX = np.array(
+        [1, 80 + KELVIN, 30 + KELVIN, 70 + KELVIN, 60 + KELVIN], dtype=np.float32
+    )
 
     def __init__(self, dt=1):
         """Create a new SimpleHvac.
@@ -131,11 +135,16 @@ class SimpleHvac:
 
         """
         self.dt = dt
-        self.increasing_temps = np.array([MINTEMP, -15, -5, -2, 5, 8, 18, MAXTEMP])
-        self.decreasing_temps = np.array([MINTEMP, -18, -8, -5, 2, 5, 15, MAXTEMP])
+        self.increasing_temps = np.array(
+            [MINTEMP, -15, -5, -2, 5, 8, 18, MAXTEMP], dtype=np.float32
+        )
+        self.decreasing_temps = np.array(
+            [MINTEMP, -18, -8, -5, 2, 5, 15, MAXTEMP], dtype=np.float32
+        )
         # blower power is original setting (5 - 18) x 17 + 94
         self.blower_power_lu = (
-            np.array([18, 18, 10, 5, 5, 10, 18, 18]) * BLOWER_MULT + BLOWER_ADD
+            np.array([18, 18, 10, 5, 5, 10, 18, 18], dtype=np.float32) * BLOWER_MULT
+            + BLOWER_ADD
         )
         self.ptc_pid = PID(
             PTC_P,
@@ -154,7 +163,7 @@ class SimpleHvac:
         )
         self.recirc_time = 0
         self.heating_mode = False
-        self.state = np.zeros((len(self.Xt)))
+        self.state = np.zeros((len(self.Xt)), dtype=np.float32)
 
     def step(self, action):
         """step takes as input an action vector (see Ut) and returns a state
