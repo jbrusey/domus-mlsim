@@ -13,6 +13,6 @@ model_files = [
 setup(
     name="domus_mlsim",
     version="0.1",
-    install_requires=["simple-pid", "numpy", "pandas", "scikit-learn==0.23.2"],
+    install_requires=["simple-pid", "numpy", "pandas", "scikit-learn==1.0.1"],
     data_files=[("model", model_files)],
 )
