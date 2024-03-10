@@ -19,7 +19,7 @@ from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression as LR
 from sklearn.metrics import mean_squared_error as MSE
 
-sys.setrecursionlimit(10 ** 6)
+sys.setrecursionlimit(10**6)
 
 
 def variableBetas(X, c, p, random_state=None):
@@ -67,7 +67,7 @@ def variableBetas(X, c, p, random_state=None):
         tree = KDTree(Xk)
         dref, iref = tree.query(Muk.reshape(1, -1), k=p)
         sigma = np.mean(dref)
-        betas[label] = 1 / (2 * sigma ** 2)
+        betas[label] = 1 / (2 * sigma**2)
         centres[label] = Muk
     # TODO consider asserting : not np.isinf(betas).any()
     assert not np.isinf(betas).any()

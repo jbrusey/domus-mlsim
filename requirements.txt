@@ -1,0 +1,16 @@
+boost
+flake8
+matplotlib
+notebook
+numpy
+pandas
+pep8
+pip
+pytest
+scikit-learn
+seaborn
+xlrd
+simple-pid
+setuptools
+black
+isort

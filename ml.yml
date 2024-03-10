@@ -14,7 +14,7 @@ dependencies:
   - pep8
   - pip
   - pytest
-  - scikit-learn=0.23.2
+  - scikit-learn
   - seaborn
   - xlrd
   - pip:

@@ -6,12 +6,15 @@ This is an interface to machine learned simulators written in Python developed a
 * Example
 To see how to use the simulator, go to the [[https://github.com/jbrusey/domus_mlsim/blob/main/example.ipynb][example]]. 
 * Installation
-** Installing using pip
+** Installing using pip and virtualenv
 I recommend installing in a virtualenv or using Anaconda. You'll need to set-up and switch to the virtualenv first and then install using:
 #+BEGIN_SRC sh
+virtualenv venv
+source venv/bin/activate
+pip install -r requirements.txt
 pip install -e .
 #+END_SRC
-The ~-e~ switch is used so that the files are installed pointing back to the current directory, which helps if you update the repository later on. This should install all pre-requisites but you may need to separately install jupyter if you want to use that. 
+The ~-e~ switch is used so that the files are installed pointing back to the current directory, which helps if you update the repository later on. 
 ** Installing under anaconda or miniconda
 The simplest way to install is first install miniconda https://docs.conda.io/en/latest/miniconda.html or Anaconda https://www.anaconda.com/products/individual and then use the command line as follows:
 #+BEGIN_SRC sh

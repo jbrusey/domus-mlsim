@@ -19,7 +19,7 @@ from sklearn.metrics import mean_squared_error as MSE
 
 from .rbfdiff import rbf, rbfderivatives, variableBetas
 
-sys.setrecursionlimit(10 ** 6)
+sys.setrecursionlimit(10**6)
 
 
 def trainRBFDiffNetMISO(

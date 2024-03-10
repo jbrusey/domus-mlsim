@@ -13,6 +13,7 @@ May 6, 2021
 """
 
 import numpy as np
+
 from domus_mlsim.simple_hvac import KELVIN, SimpleHvac
 from domus_mlsim.util import kw_to_array
 

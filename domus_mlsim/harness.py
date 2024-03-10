@@ -16,7 +16,6 @@ number of timesteps under specific conditions.
 
 """
 
-
 import joblib
 import numpy as np
 import pkg_resources
@@ -41,6 +40,7 @@ from .cols import (
     HvacUt,
     HvacXt,
 )
+from .json import lr_from_json_file
 from .mlsim import MLSim
 from .simple_hvac import SimpleHvac
 from .util import kw_to_array
@@ -147,7 +147,12 @@ def update_hvac_inputs(h_u, c_x, cab_t):
 
 def update_dv0_inputs(b_u, h_x, c_x):
     """update dv0 input vector b_u based on hvac state h_x and control state c_x."""
-    b_u[[DV0Ut.t_HVACMain, DV0Ut.v_HVACMain,]] = h_x[
+    b_u[
+        [
+            DV0Ut.t_HVACMain,
+            DV0Ut.v_HVACMain,
+        ]
+    ] = h_x[
         [
             HvacXt.vent_T,
             HvacXt.evp_mdot,
@@ -168,7 +173,11 @@ def update_dv1_inputs(b_u, h_x, c_x):
         ]
     ] = [1, 1]
 
-    b_u[[DV1Ut.HvacMain,]] = h_x[
+    b_u[
+        [
+            DV1Ut.HvacMain,
+        ]
+    ] = h_x[
         [
             HvacXt.vent_T,
         ]
@@ -186,22 +195,22 @@ def update_dv1_inputs(b_u, h_x, c_x):
 
 
 def load_dv0():
-    fname = pkg_resources.resource_filename(__name__, "model/3d_lr.joblib")
-    scaler_and_model = joblib.load(fname)
+    fname = pkg_resources.resource_filename(__name__, "model/3d_lr.json")
+    scaler_and_model = lr_from_json_file(fname)
 
     return scaler_and_model
 
 
 def load_dv1():
-    fname = pkg_resources.resource_filename(__name__, "model/dv1_lr.joblib")
-    scaler_and_model = joblib.load(fname)
+    fname = pkg_resources.resource_filename(__name__, "model/dv1_lr.json")
+    scaler_and_model = lr_from_json_file(fname)
 
     return scaler_and_model
 
 
 def load_hvac():
-    fname = pkg_resources.resource_filename(__name__, "model/hvac_lr.joblib")
-    scaler_and_model = joblib.load(fname)
+    fname = pkg_resources.resource_filename(__name__, "model/hvac_lr.json")
+    scaler_and_model = lr_from_json_file(fname)
 
     return scaler_and_model
 

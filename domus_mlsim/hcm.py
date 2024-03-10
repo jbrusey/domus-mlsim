@@ -10,27 +10,18 @@ import pickle
 import numpy as np
 import pkg_resources
 
-
-def _load_hcm_model():
-    """load pickle files needed for LDA"""
-    return [
-        pickle.load(
-            open(pkg_resources.resource_filename(__name__, f"model/{x}.pickle"), "rb")
-        )
-        for x in ["LDAmdl", "Scaler", "LDAmdl_red", "Scaler_red"]
-    ]
+from .json import lda_from_json_file
 
 
 def load_hcm_model():
-    """due to a change in 0.23 onward, we now need to set the number of
-    features expected for the estimator as this was not done when the model was fitted."""
-
-    n_features = [45, 45, 24, 24]
-    mdl = _load_hcm_model()
-    for n, m in zip(n_features, mdl):
-        m.n_features_in_ = n
-
-    return mdl
+    """load pickle files needed for LDA"""
+    sc1, lda1 = lda_from_json_file(
+        pkg_resources.resource_filename(__name__, "model/lda.json")
+    )
+    sc2, lda2 = lda_from_json_file(
+        pkg_resources.resource_filename(__name__, "model/lda_red.json")
+    )
+    return (lda1, sc1, lda2, sc2)
 
 
 def local_eqt(ta, tr, va, pre_clo):

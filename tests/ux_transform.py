@@ -9,7 +9,6 @@ import pandas as pd
 
 
 def df_to_xy(df, x_columns, u_columns, xlag=None, ulag=None):
-
     """given a dataframe df and x_columns, u_columns being distinct list of
     columns, return dataframe in xy form (x is input, y is output).
 
@@ -67,7 +66,6 @@ def df_to_xy(df, x_columns, u_columns, xlag=None, ulag=None):
 
 
 def unroll_by_group(df, group_column, x_columns, u_columns, xlag, ulag):
-
     """given a single dataframe that has a column indicating the
     group, form unrolled rows X=x1,x2,...,u1,u2,... Y=xn, similar
     to df_to_train_test but without splitting into train / test. This
