@@ -1,18 +1,11 @@
-from pathlib import Path
-
-from setuptools import setup
-
-model_root = Path("domus_mlsim/model")
-model_files = [
-    str(p)
-    for p in list(model_root.glob("*lr.json"))
-    + list(model_root.glob("*.pickle"))
-    + list(model_root.glob("scenarios.csv"))
-]
+from setuptools import setup, find_packages
 
 setup(
     name="domus_mlsim",
-    version="0.1",
+    version="0.2",
+    packages=find_packages(),
     install_requires=["simple-pid", "numpy", "pandas", "scikit-learn"],
-    data_files=[("model", model_files)],
+    package_data={
+        "domus_mlsim": ["model/*.json", "model/scenarios.csv"],
+    },
 )
